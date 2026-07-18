@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "editor-browser",
+      "request": "launch",
+      "name": "Open Home",
+      "url": "file:///d%3A/github/Tourist-navigator-application/index.html"
+    },
+    {
+      "type": "editor-browser",
+      "request": "launch",
+      "name": "Open User Portal",
+      "url": "file:///d%3A/github/Tourist-navigator-application/user.html"
+    },
+    {
+      "type": "editor-browser",
+      "request": "launch",
+      "name": "Open Guide Portal",
+      "url": "file:///d%3A/github/Tourist-navigator-application/guide.html"
+    },
+    {
+      "type": "editor-browser",
+      "request": "launch",
+      "name": "Open Admin Portal",
+      "url": "file:///d%3A/github/Tourist-navigator-application/admin.html"
+    }
+  ]
+}

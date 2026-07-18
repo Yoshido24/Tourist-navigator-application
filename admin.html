@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Portal | Montalban Navigator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">Montalban Navigator</a>
+      <nav class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#attractions">Attractions</a>
+        <a href="#guides">Guides</a>
+        <a href="#management">Management</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section id="overview" class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Admin portal</p>
+          <h1>Manage attractions, guides, and bookings from a single control panel.</h1>
+          <p class="hero-text">
+            Jump straight to the section you need, add new destinations on the map, and approve bookings without scrolling through long pages.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#attractions">Add attractions</a>
+            <a class="btn btn-secondary" href="#management">Review bookings</a>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-top">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="summary-panel">
+            <h3>Operations overview</h3>
+            <div class="summary-list">
+              <div class="summary-pill">📍 Map-based attraction placement</div>
+              <div class="summary-pill">🧑‍🏫 Guide registration and assignment</div>
+              <div class="summary-pill">✅ Booking approval workflow</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="stats-row">
+          <div class="stat-card">
+            <strong id="stat-bookings">0</strong>
+            <span>Bookings</span>
+          </div>
+          <div class="stat-card">
+            <strong id="stat-attractions">0</strong>
+            <span>Attractions</span>
+          </div>
+          <div class="stat-card">
+            <strong id="stat-guides">0</strong>
+            <span>Guides</span>
+          </div>
+          <div class="stat-card">
+            <strong id="stat-occupancy">0%</strong>
+            <span>Occupancy</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="attractions" class="section section-alt">
+        <div class="section-heading">
+          <p class="eyebrow">Attractions</p>
+          <h2>Add new attractions and place them directly on the map.</h2>
+        </div>
+        <div class="dashboard-grid">
+          <article class="dashboard-card">
+            <h3>Interactive map editor</h3>
+            <p class="map-caption">Click anywhere on the map to place a new pin. Click an existing marker to edit it.</p>
+            <div class="map-editor-layout">
+              <div class="map-view map-view-editor" id="admin-map-view"></div>
+              <form id="add-attraction-form" class="booking-form">
+                <div class="filter-row">
+                  <button class="btn btn-secondary" id="new-attraction-btn" type="button">New attraction</button>
+                </div>
+                <label for="attraction-name">Name</label>
+                <input id="attraction-name" name="name" required />
+                <label for="attraction-category">Category</label>
+                <input id="attraction-category" name="category" placeholder="Nature" required />
+                <label for="attraction-fee">Fee</label>
+                <input id="attraction-fee" name="fee" placeholder="₱50" required />
+                <label for="attraction-duration">Duration</label>
+                <input id="attraction-duration" name="duration" placeholder="2-3 hours" required />
+                <label for="attraction-description">Description</label>
+                <textarea id="attraction-description" name="description" rows="3" required></textarea>
+                <label for="attraction-position">Pin position</label>
+                <input id="attraction-position" name="position" value="Click the map to place the pin" readonly />
+                <input id="attraction-position-x" name="positionX" type="hidden" />
+                <input id="attraction-position-y" name="positionY" type="hidden" />
+                <button class="btn btn-primary" type="submit">Save attraction</button>
+              </form>
+            </div>
+          </article>
+        </div>
+        <div id="admin-attractions-list" class="dashboard-grid" style="margin-top: 1rem;"></div>
+      </section>
+
+      <section id="guides" class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Guides</p>
+          <h2>Add guides and keep them ready for assignment.</h2>
+        </div>
+        <div class="dashboard-grid">
+          <article class="dashboard-card">
+            <h3>Add guide</h3>
+            <form id="add-guide-form" class="booking-form">
+              <label for="guide-name">Guide name</label>
+              <input id="guide-name" name="name" required />
+              <label for="guide-specialty">Specialty</label>
+              <input id="guide-specialty" name="specialty" required />
+              <label for="guide-contact">Contact</label>
+              <input id="guide-contact" name="contact" placeholder="0917-123-4567" required />
+              <label for="guide-availability">Availability</label>
+              <input id="guide-availability" name="availability" placeholder="Weekends" required />
+              <button class="btn btn-primary" type="submit">Save guide</button>
+            </form>
+          </article>
+          <article class="dashboard-card">
+            <h3>Guide overview</h3>
+            <p class="map-caption">Guides appear here and can be assigned to bookings from the management section.</p>
+            <div id="admin-guides-list" class="dashboard-grid"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="management" class="section section-alt">
+        <div class="section-heading">
+          <p class="eyebrow">Management</p>
+          <h2>Approve bookings and assign guides to the tour flow.</h2>
+        </div>
+        <div id="admin-bookings-list" class="feature-grid"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© <span id="year"></span> Montalban Navigator. Managed by admins.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
