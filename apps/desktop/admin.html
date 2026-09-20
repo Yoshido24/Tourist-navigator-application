@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Portal | Montalban Navigator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="../../frontend/desktop/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../web/index.html">Montalban Navigator</a>
+      <nav class="nav-links admin-tabs" aria-label="Admin sections" role="tablist">
+        <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="overview" data-admin-tab="overview">Overview</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="attractions" data-admin-tab="attractions">Attractions</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="shop" data-admin-tab="shop">Mini shop</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="guides" data-admin-tab="guides">Guides</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="management" data-admin-tab="management">Management</button>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section id="overview" class="admin-tab-panel is-active" role="tabpanel">
+        <div class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Admin portal</p>
+          <h1>Manage attractions, guides, and bookings from a single control panel.</h1>
+          <p class="hero-text">
+            Jump straight to the section you need, add new destinations on the map, and approve bookings without scrolling through long pages.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-admin-tab="attractions">Add attractions</button>
+            <button class="btn btn-secondary" type="button" data-admin-tab="management">Review tours</button>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-top">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="summary-panel">
+            <h3>Operations overview</h3>
+            <div class="summary-list">
+              <div class="summary-pill">📍 Map-based attraction placement</div>
+              <div class="summary-pill">🧑‍🏫 Guide registration and assignment</div>
+              <div class="summary-pill">✅ Booking approval workflow</div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <div class="section">
+          <div class="stats-row">
+            <div class="stat-card">
+              <strong id="stat-bookings">0</strong>
+              <span>Bookings</span>
+            </div>
+            <div class="stat-card">
+              <strong id="stat-attractions">0</strong>
+              <span>Attractions</span>
+            </div>
+            <div class="stat-card">
+              <strong id="stat-guides">0</strong>
+              <span>Guides</span>
+            </div>
+            <div class="stat-card">
+              <strong id="stat-shop-products">0</strong>
+              <span>Mini shop products</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section id="management" class="section section-alt admin-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Management</p>
+          <h2>Monitor tours and guide assignments.</h2>
+        </div>
+        <div class="subtabs" role="tablist" aria-label="Tour management">
+          <button class="subtab is-active" type="button" role="tab" aria-selected="true" data-management-view="management-pending-panel">Pending booking</button>
+          <button class="subtab" type="button" role="tab" aria-selected="false" data-management-view="management-approved-panel">Approved booking</button>
+          <button class="subtab" type="button" role="tab" aria-selected="false" data-management-view="management-completed-panel">Completed booking</button>
+        </div>
+        <div id="management-pending-panel" class="management-view-panel">
+          <div id="management-pending-list" class="dashboard-grid"></div>
+        </div>
+        <div id="management-approved-panel" class="management-view-panel" hidden>
+          <div id="management-approved-list" class="dashboard-grid"></div>
+        </div>
+        <div id="management-completed-panel" class="management-view-panel" hidden>
+          <div id="management-completed-list" class="dashboard-grid"></div>
+        </div>
+      </section>
+
+      <section id="shop" class="section section-alt admin-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Mini shop</p>
+          <h2>Publish products tourists can discover before their visit.</h2>
+        </div>
+        <div class="subtabs" role="tablist" aria-label="Mini shop management">
+          <button class="subtab is-active" type="button" role="tab" aria-selected="true" data-shop-view="shop-published-panel">Published products</button>
+          <button class="subtab" type="button" role="tab" aria-selected="false" data-shop-view="shop-add-panel">Add product</button>
+        </div>
+        <div id="shop-published-panel" class="shop-view-panel">
+          <article class="dashboard-card">
+            <h3>Published products</h3>
+            <div id="admin-shop-products-list" class="dashboard-grid"></div>
+          </article>
+        </div>
+        <div id="shop-add-panel" class="shop-view-panel" hidden>
+          <article class="dashboard-card">
+            <h3>Add shop item</h3>
+            <form id="add-shop-product-form" class="booking-form">
+              <label for="shop-product-name">Product name</label>
+              <input id="shop-product-name" name="name" required />
+              <label for="shop-product-price">Price</label>
+              <input id="shop-product-price" name="price" placeholder="₱150" required />
+              <label for="shop-product-description">Description</label>
+              <textarea id="shop-product-description" name="description" rows="3" required></textarea>
+              <label for="shop-product-availability">Where to buy</label>
+              <input id="shop-product-availability" name="availability" placeholder="Available at the market stalls" required />
+              <label for="shop-product-image">Picture URL</label>
+              <input id="shop-product-image" name="image" type="url" placeholder="https://example.com/product.jpg" required />
+              <button class="btn btn-primary" type="submit">Add shop item</button>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <section id="attractions" class="section section-alt admin-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Attractions</p>
+          <h2>Keep attraction details organized and easy to manage.</h2>
+        </div>
+        <div class="subtabs" role="tablist" aria-label="Attraction management">
+          <button class="subtab is-active" type="button" role="tab" aria-selected="true" data-attraction-view="attraction-list-panel">Attraction list</button>
+          <button class="subtab" type="button" role="tab" aria-selected="false" data-attraction-view="attraction-add-panel">Add attraction</button>
+        </div>
+        <div id="attraction-list-panel" class="attraction-view-panel">
+          <div class="section-heading compact-heading">
+            <p class="eyebrow">Saved destinations</p>
+            <h3>Attractions</h3>
+            <p>Review existing destinations or open Add attraction to place a new pin.</p>
+          </div>
+          <div id="admin-attractions-list" class="dashboard-grid attraction-grid"></div>
+        </div>
+        <div id="attraction-add-panel" class="attraction-view-panel" hidden>
+          <article class="dashboard-card">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Attraction details</p>
+              <h3>Complete the destination information</h3>
+              <p>Location confirmed. Add the details travelers will see.</p>
+            </div>
+            <form id="add-attraction-form" class="booking-form">
+              <div class="filter-row">
+                <button class="btn btn-secondary" id="new-attraction-btn" type="button">Choose another pin</button>
+              </div>
+                <div class="filter-row">
+                  <p id="attraction-position" class="pin-confirmed-message">Choose a pin location first.</p>
+                </div>
+                <label for="attraction-name">Name</label>
+                <input id="attraction-name" name="name" required />
+                <label for="attraction-category">Category</label>
+                <input id="attraction-category" name="category" placeholder="Nature" required />
+                <label for="attraction-fee">Fee</label>
+                <input id="attraction-fee" name="fee" placeholder="₱50" required />
+                <label for="attraction-duration">Duration</label>
+                <input id="attraction-duration" name="duration" placeholder="2-3 hours" required />
+                <label for="attraction-description">What is there?</label>
+                <textarea id="attraction-description" name="description" rows="3" required></textarea>
+                <label for="attraction-trail">Trail or route details</label>
+                <textarea id="attraction-trail" name="trail" rows="2" placeholder="Example: 1.5 km loop trail; wear shoes with grip."></textarea>
+                <label for="attraction-expectations">What should visitors expect?</label>
+                <textarea id="attraction-expectations" name="expectations" rows="2"></textarea>
+                <label for="attraction-terrain">Terrain and accessibility</label>
+                <input id="attraction-terrain" name="terrain" placeholder="Example: Paved path with steps" />
+                <label for="attraction-start-point">Starting point / meetup location</label>
+                <input id="attraction-start-point" name="startPoint" placeholder="Example: Main entrance gate" />
+                <fieldset class="transport-editor">
+                  <legend>Public transport and fare</legend>
+                  <div id="transport-option-list"></div>
+                  <button class="btn btn-secondary" id="add-transport-option" type="button">Add transport option</button>
+                  <small class="form-help">Choose the transport type, enter the fare per person, and describe the route or steps.</small>
+                </fieldset>
+                <label for="attraction-image">Image URL (optional)</label>
+                <input id="attraction-image" name="image" type="url" placeholder="https://example.com/attraction.jpg" />
+                <input id="attraction-position-x" name="positionX" type="hidden" />
+                <input id="attraction-position-y" name="positionY" type="hidden" />
+                <button class="btn btn-primary" type="submit">Save attraction</button>
+            </form>
+          </article>
+        </div>
+        <div id="pin-picker-modal" class="modal-backdrop" hidden>
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="pin-picker-title">
+            <div class="modal-heading">
+              <div>
+                <p class="eyebrow">Step 1 of 2</p>
+                <h3 id="pin-picker-title">Choose the attraction location</h3>
+              </div>
+              <button class="btn btn-secondary" type="button" data-close-pin-picker>Cancel</button>
+            </div>
+            <p class="map-caption">Click the map where the attraction is located, then confirm the pin.</p>
+            <div class="map-view map-view-editor" id="admin-map-view"></div>
+            <p id="pin-picker-status" class="pin-picker-status">No location selected yet.</p>
+            <button class="btn btn-primary" id="confirm-pin-location" type="button" disabled>Confirm pin location</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="guides" class="section admin-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Guides</p>
+          <h2>Review approved guides and new applications.</h2>
+        </div>
+        <div class="subtabs" role="tablist" aria-label="Guide management">
+          <button class="subtab is-active" type="button" role="tab" aria-selected="true" data-guide-view="guide-overview-panel">Guide overview</button>
+          <button class="subtab" type="button" role="tab" aria-selected="false" data-guide-view="guide-pending-panel">Pending applications</button>
+        </div>
+        <div id="guide-overview-panel" class="guide-view-panel">
+          <article class="dashboard-card">
+            <h3>Guide overview</h3>
+            <p class="map-caption">Guides appear here and can be assigned to bookings from the management section.</p>
+            <div id="admin-guides-list" class="dashboard-grid"></div>
+          </article>
+        </div>
+        <div id="guide-pending-panel" class="guide-view-panel" hidden>
+          <article class="dashboard-card">
+            <h3>Pending guide applications</h3>
+            <p class="map-caption">Review mobile sign-ups and approve them before assigning guides to bookings.</p>
+            <div id="admin-guide-applications-list" class="dashboard-grid"></div>
+          </article>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>© <span id="year"></span> Montalban Navigator. Managed by admins.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>window.APP_ROUTES = { guide: '../mobile/guide.html' };</script>
+    <script src="../../frontend/desktop/features/attractions/attractions.js"></script>
+    <script src="../../frontend/desktop/features/bookings/bookings.js"></script>
+    <script src="../../frontend/desktop/features/shop/shop.js"></script>
+    <script src="../../frontend/desktop/features/transport/transport.js"></script>
+    <script src="../../frontend/desktop/js/portal.js"></script>
+
+  </body>
+</html>

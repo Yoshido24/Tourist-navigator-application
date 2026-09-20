@@ -113,6 +113,83 @@ img {
   font-weight: 600;
 }
 
+.admin-tabs {
+  gap: 0.45rem;
+}
+
+.admin-tab {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.55rem 0.8rem;
+}
+
+.admin-tab:hover,
+.admin-tab.is-active {
+  background: #e7f6f3;
+  border-color: rgba(15, 118, 110, 0.18);
+  color: var(--primary-dark);
+}
+
+.admin-tab-panel[hidden] {
+  display: none;
+}
+
+.guide-tab {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.guide-tab.is-active,
+.guide-tab:hover {
+  background: #e7f6f3;
+  border-color: rgba(15, 118, 110, 0.18);
+  color: var(--primary-dark);
+}
+
+.guide-tab-panel[hidden] {
+  display: none;
+}
+
+.user-tabs {
+  gap: 0.45rem;
+}
+
+.user-tab {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.55rem 0.8rem;
+}
+
+.user-tab:hover,
+.user-tab.is-active {
+  background: #e7f6f3;
+  border-color: rgba(15, 118, 110, 0.18);
+  color: var(--primary-dark);
+}
+
+.user-tab-panel[hidden] {
+  display: none;
+}
+
 .page-shell,
 .section,
 .footer {
@@ -284,6 +361,179 @@ img {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.shop-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.1rem;
+}
+
+.shop-card-content {
+  flex: 1;
+}
+
+.shop-card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.shop-card-heading h3 {
+  margin: 0;
+}
+
+.shop-card-heading strong {
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.shop-card p {
+  margin: 0.45rem 0;
+}
+
+.shop-card small {
+  color: var(--muted);
+}
+
+/* Admin lists can hold lengthy descriptions without being forced into narrow columns. */
+#admin-attractions-list,
+#admin-guides-list,
+.admin-bookings-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+#attractions > .dashboard-grid {
+  grid-template-columns: 1fr;
+}
+
+.subtabs {
+  display: flex;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.subtab {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.subtab.is-active {
+  border-bottom-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.compact-heading {
+  margin-bottom: 1rem;
+}
+
+.attraction-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 861px) {
+  #admin-attractions-list.attraction-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.attraction-grid .dashboard-card {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+}
+
+.attraction-grid .attraction-management-actions {
+  margin-top: auto;
+}
+
+.shop-admin-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 0.8rem;
+}
+
+.schedule-editor {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.schedule-editor label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.62);
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.modal-card {
+  width: min(900px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 1.25rem;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
+}
+
+.modal-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.pin-picker-status,
+.pin-confirmed-message {
+  margin: 0.8rem 0;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+#attractions .map-editor-layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+}
+
+#guides > .dashboard-grid {
+  grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr);
+  align-items: start;
+}
+
+#admin-guides-list {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+#admin-attractions-list .dashboard-card,
+#admin-guides-list .dashboard-card,
+.admin-bookings-grid .dashboard-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .card,
 .portal-card,
 .shop-card,
@@ -337,6 +587,69 @@ img {
   border: 1px solid var(--border);
   border-radius: 24px;
   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+}
+
+.transport-options {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.transport-option {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #f8fbff;
+}
+
+.transport-option-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.transport-option h4,
+.transport-option p {
+  margin: 0;
+}
+
+.transport-option p {
+  margin-top: 0.45rem;
+}
+
+.transport-option small {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--muted);
+}
+
+.form-help {
+  display: block;
+  margin-top: -0.45rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.transport-editor {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.transport-editor legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+}
+
+.transport-editor-row {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1fr 1.8fr auto;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .attraction-menu-list {
@@ -414,6 +727,11 @@ img {
   border: 1px solid rgba(15, 118, 110, 0.16);
 }
 
+.map-view-primary {
+  min-height: 480px;
+  height: 480px;
+}
+
 .leaflet-map {
   width: 100%;
   height: 100%;
@@ -430,92 +748,53 @@ img {
 }
 
 .map-view-editor {
-  min-height: 360px;
+  min-height: 560px;
+  height: 560px;
 }
 
-.map-surface {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.8) 0 8px, transparent 9px),
-    radial-gradient(circle at 70% 40%, rgba(255,255,255,0.7) 0 10px, transparent 11px),
-    linear-gradient(120deg, rgba(15, 118, 110, 0.15) 0%, rgba(245, 158, 11, 0.2) 100%);
-  background-size: cover;
+.modal-card .map-view-editor,
+.modal-card .leaflet-map {
+  width: 100%;
+  min-height: 560px;
+  height: 560px;
 }
 
-.map-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.02) 100%);
+.tourist-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 1rem;
+  align-items: stretch;
 }
 
-.map-pins {
-  position: absolute;
-  inset: 0;
+.map-attraction-details {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
 }
 
-.map-pin-btn {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1.7rem;
-  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.16));
+.map-attraction-details h3 { margin-top: 0; }
+.map-attraction-details p { color: var(--muted); }
+
+.map-attraction-details img {
+  width: 100%;
+  max-height: 150px;
+  margin: 0.75rem 0;
+  border-radius: 14px;
+  object-fit: cover;
 }
 
-.map-pin-btn:hover {
-  transform: translate(-50%, -50%) scale(1.08);
+.directions-actions,
+.attraction-management-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
 }
 
-.map-preview {
-  position: absolute;
-  left: 50%;
-  top: 12px;
-  transform: translateX(-50%);
-  min-width: 220px;
-  max-width: 260px;
-  padding: 0.8rem 1rem;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.16);
-  border: 1px solid rgba(15, 118, 110, 0.12);
-  z-index: 2;
-}
-
-.map-preview h4 {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
-}
-
-.map-preview p {
-  margin: 0.15rem 0;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-.map-details-card {
-  position: absolute;
-  right: 1rem;
-  bottom: 1rem;
-  width: min(280px, calc(100% - 2rem));
-  padding: 1rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
-  z-index: 2;
-}
-
-.map-details-card h3 {
-  margin-top: 0;
-  margin-bottom: 0.4rem;
-}
-
-.map-details-card p {
-  margin: 0.3rem 0;
-  color: var(--muted);
-}
+.directions-actions .btn,
+.attraction-management-actions .btn { font-size: 0.9rem; }
 
 .map-editor-layout {
   display: grid;
@@ -528,30 +807,6 @@ img {
   color: var(--muted);
   font-size: 0.95rem;
 }
-
-.map-pin {
-  position: absolute;
-  font-size: 1.7rem;
-}
-
-.pin-a { top: 25%; left: 20%; }
-.pin-b { top: 50%; left: 58%; }
-.pin-c { top: 20%; left: 72%; }
-
-.map-caption {
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.map-pin {
-  position: absolute;
-  font-size: 1.7rem;
-}
-
-.pin-a { top: 25%; left: 20%; }
-.pin-b { top: 50%; left: 58%; }
-.pin-c { top: 20%; left: 72%; }
 
 .booking-panel,
 .booking-wrapper,
@@ -633,16 +888,84 @@ img {
   .portal-grid,
   .shop-grid,
   .dashboard-grid,
+  .map-editor-layout,
   .stats-row,
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  #guides > .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #attractions .map-editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tourist-map-layout { grid-template-columns: 1fr; }
+
+  .transport-editor-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .transport-editor-row [data-transport-route] {
+    grid-column: 1 / -1;
+  }
+
+  .transport-editor-row [data-remove-transport] {
+    justify-self: start;
   }
 
   .hero {
     padding-top: 1rem;
   }
 
+  .topbar {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .page-shell,
+  .section,
+  .footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
   .nav-links {
-    display: none;
+    display: flex;
+    gap: 0.7rem;
+    width: 100%;
+  }
+
+  .nav-links a,
+  .admin-tab,
+  .user-tab {
+    font-size: 0.9rem;
+  }
+
+  .hero-actions .btn,
+  .directions-actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .detail-top {
+    flex-direction: column;
+  }
+
+  .detail-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-gallery img {
+    height: 190px;
   }
 }

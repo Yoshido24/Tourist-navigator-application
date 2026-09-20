@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Portal | Montalban Navigator</title>
+    <meta
+      name="description"
+      content="A traveler portal for exploring attractions, viewing maps, booking tours, and shopping locally."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="../../frontend/web/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">Montalban Navigator</a>
+      <nav class="nav-links user-tabs" aria-label="Traveler sections" role="tablist">
+        <button class="user-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="user-map" data-user-tab="user-map">Map</button>
+        <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-attractions" data-user-tab="user-attractions">Attractions</button>
+        <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-booking" data-user-tab="user-booking">Booking</button>
+        <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-directions" data-user-tab="user-directions">Directions</button>
+        <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-shop" data-user-tab="user-shop">Mini shop</button>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section id="user-map" class="section section-alt user-tab-panel is-active" role="tabpanel">
+        <div class="section-heading">
+          <p class="eyebrow">Start here</p>
+          <h1>Explore Montalban attractions</h1>
+          <p>Choose a pin to see what is available, then book your visit or open directions.</p>
+        </div>
+        <div class="tourist-map-layout">
+          <div id="tourist-map" class="map-view map-view-primary" aria-label="Map of tourist attractions"></div>
+          <aside id="tourist-map-details" class="map-attraction-details" aria-live="polite">
+            <p>Select an attraction pin to view its details.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="user-attractions" class="section user-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Choose your destination</p>
+          <h2>Pick a place, review the details, and book your visit in one flow.</h2>
+        </div>
+        <div class="attraction-shell">
+          <div class="attraction-menu-card">
+            <h3>Available attractions</h3>
+            <div id="attraction-selector" class="attraction-menu-list"></div>
+          </div>
+          <div class="card attraction-detail-card">
+            <div class="detail-top">
+              <div>
+                <p class="eyebrow">Selected destination</p>
+                <h3 id="selected-attraction-name">Loading destination...</h3>
+              </div>
+              <button class="btn btn-primary" type="button" data-user-tab-target="user-booking">Book this trip</button>
+            </div>
+            <div id="attraction-gallery" class="detail-gallery"></div>
+            <div class="detail-grid">
+              <div>
+                <h4>What you will experience</h4>
+                <p id="selected-attraction-description"></p>
+              </div>
+              <div>
+                <h4>What to expect</h4>
+                <p id="selected-attraction-expectations"></p>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <div>
+                <h4>Terrain</h4>
+                <p id="selected-attraction-terrain"></p>
+              </div>
+              <div>
+                <h4>Starting point</h4>
+                <p id="selected-attraction-startpoint"></p>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <div>
+                <h4>Trail or route</h4>
+                <p id="selected-attraction-trail"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="user-booking" class="section section-alt user-tab-panel" role="tabpanel" hidden>
+        <div class="booking-wrapper">
+          <div>
+            <p class="eyebrow">Booking flow</p>
+            <h2>Reserve your visit and review the route before you go.</h2>
+            <p>
+              Enter your contact details, select the attraction you want to visit, and review the
+              directions to the starting point before you confirm.
+            </p>
+            <ol class="step-list">
+              <li>Choose your attraction from the list above.</li>
+              <li>Share your contact details and preferred date.</li>
+              <li>Review the map directions and confirm the booking.</li>
+            </ol>
+          </div>
+          <div class="booking-side-stack">
+            <form id="booking-form" class="booking-form">
+              <label for="name">Your name</label>
+              <input id="name" name="name" placeholder="Juan Dela Cruz" required />
+
+              <label for="contact">Contact number</label>
+              <input id="contact" name="contact" placeholder="0917-123-4567" required />
+
+              <fieldset class="party-counts">
+                <legend>How many people are joining?</legend>
+                <div class="party-count">
+                  <label for="adults">Adults</label>
+                  <input id="adults" name="adults" type="number" min="0" value="1" required />
+                </div>
+                <div class="party-count">
+                  <label for="kids">Children</label>
+                  <input id="kids" name="kids" type="number" min="0" value="0" required />
+                </div>
+                <div class="party-count">
+                  <label for="pwd">PWD</label>
+                  <input id="pwd" name="pwd" type="number" min="0" value="0" required />
+                </div>
+              </fieldset>
+
+              <label for="place">Attraction</label>
+              <select id="place" name="place"></select>
+
+              <label for="date">Preferred date</label>
+              <input id="date" type="date" name="date" required />
+
+              <label for="time">Preferred start time</label>
+              <input id="time" type="time" name="time" />
+
+              <label for="notes">Notes</label>
+              <textarea id="notes" name="notes" rows="3" placeholder="Tell us what you want to experience."></textarea>
+
+              <button class="btn btn-primary" type="submit">Confirm booking</button>
+              <p id="booking-success" class="success-message" hidden>
+                Booking confirmed! Use the directions below to reach the site.
+              </p>
+            </form>
+            <button class="btn btn-secondary" type="button" data-user-tab-target="user-directions">View ways to get there</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="user-directions" class="section section-alt user-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Ways to get there</p>
+          <h2>Reach your selected attraction</h2>
+          <p>Compare public transport options, estimated fares, and route details before you go.</p>
+        </div>
+        <div class="directions-card">
+          <h3 id="directions-title">How to reach the starting point</h3>
+          <p id="directions-summary">Choose an attraction to see the route details.</p>
+          <div id="transport-options" class="transport-options"></div>
+          <div id="directions-actions" class="directions-actions"></div>
+          <iframe id="directions-map" class="directions-embed" title="Directions to the attraction start point" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </section>
+
+      <section id="user-shop" class="section user-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Local store</p>
+          <h2>Things to buy during your visit</h2>
+          <p>Browse local snacks, crafts, and keepsakes available around the attractions.</p>
+        </div>
+        <div id="shop-products" class="shop-grid"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© <span id="year"></span> Montalban Navigator. Designed for travelers.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/web/features/attractions/attractions.js"></script>
+    <script src="../../frontend/web/features/booking/booking.js"></script>
+    <script src="../../frontend/web/features/directions/directions.js"></script>
+    <script src="../../frontend/web/features/shop/shop.js"></script>
+    <script src="../../frontend/web/js/portal.js"></script>
+
+  </body>
+</html>

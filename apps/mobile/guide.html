@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide Portal | Montalban Navigator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../frontend/mobile/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="guide-auth.html">Guide access</a>
+      <nav class="nav-links guide-tabs" aria-label="Guide sections" role="tablist">
+        <button class="guide-tab is-active" type="button" role="tab" aria-selected="true" data-guide-tab="guide-schedule">My schedule</button>
+        <button class="guide-tab" type="button" role="tab" aria-selected="false" data-guide-tab="guide-bookings">Booking history</button>
+        <button class="guide-tab" type="button" role="tab" aria-selected="false" data-guide-tab="guide-visitors">Visitor list</button>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Guide portal</p>
+          <h1>Stay organized with bookings, arrivals, and daily tour plans.</h1>
+          <p class="hero-text">
+            Guides can review upcoming requests, confirm visitor arrival lists, and keep each tour on track.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-guide-tab-target="guide-bookings">View bookings</button>
+            <button class="btn btn-secondary" type="button" data-guide-tab-target="guide-schedule">See schedule</button>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-top">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="mock-map">
+            <div class="pin pin-one">🧭</div>
+            <div class="pin pin-two">🧭</div>
+            <div class="pin pin-three">🧭</div>
+          </div>
+          <div class="mock-details">
+            <h3>Today’s overview</h3>
+            <p id="guide-overview-summary">No tours scheduled yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="guide-auth" class="section section-alt guide-tab-panel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Guide access</p>
+          <h2>Sign up or log in to see assigned bookings.</h2>
+        </div>
+        <form id="guide-login-form" class="booking-form guide-login-card">
+          <label for="guide-login-contact">Approved contact number</label>
+          <input id="guide-login-contact" type="tel" placeholder="0917-123-4567" required />
+          <label for="guide-login-password">Password</label>
+          <input id="guide-login-password" type="password" required />
+          <button class="btn btn-primary" type="submit">Log in</button>
+          <p id="guide-login-message" class="success-message" hidden></p>
+        </form>
+        <p class="guide-auth-switch">New guide? <button class="btn btn-secondary" type="button" data-guide-tab-target="guide-signup">Apply as a guide</button></p>
+      </section>
+
+      <section id="guide-schedule" class="section section-alt guide-tab-panel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Daily schedule</p>
+          <h2>Plan the day around your assigned tours.</h2>
+        </div>
+        <div id="guide-info-list" class="dashboard-grid"></div>
+        <div id="guide-schedule-list" class="dashboard-grid"></div>
+      </section>
+
+      <section id="guide-bookings" class="section guide-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Booking history</p>
+          <h2>Review tours you have completed.</h2>
+        </div>
+        <div id="guide-bookings-list" class="dashboard-grid"></div>
+      </section>
+
+      <section id="guide-visitors" class="section guide-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Visitor list</p>
+          <h2>Keep track of who is arriving and when.</h2>
+        </div>
+        <div id="guide-visitors-list" class="dashboard-grid"></div>
+      </section>
+
+      <section id="guide-signup" class="section section-alt guide-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Become a guide</p>
+          <h2>Apply from your phone and wait for admin approval.</h2>
+        </div>
+        <form id="guide-application-form" class="booking-form">
+          <label for="application-name">Full name</label>
+          <input id="application-name" name="name" required />
+          <label for="application-specialty">Specialty</label>
+          <input id="application-specialty" name="specialty" placeholder="Nature trails" required />
+          <label for="application-contact">Contact</label>
+          <input id="application-contact" name="contact" required />
+          <label for="application-email">Email (optional)</label>
+          <input id="application-email" name="email" type="email" />
+          <label for="application-password">Create password</label>
+          <input id="application-password" name="password" type="password" minlength="6" required />
+          <label for="application-availability">Availability</label>
+          <input id="application-availability" name="availability" placeholder="Weekends" required />
+          <button class="btn btn-primary" type="submit">Submit application</button>
+          <p id="guide-application-message" class="success-message" hidden></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© <span id="year"></span> Montalban Navigator. Built for guides.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/mobile/features/bookings/bookings.js"></script>
+    <script src="../../frontend/mobile/features/schedule/schedule.js"></script>
+    <script src="../../frontend/mobile/features/visitors/visitors.js"></script>
+    <script src="../../frontend/mobile/js/portal.js"></script>
+
+  </body>
+</html>

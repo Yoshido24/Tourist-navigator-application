@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide Access | Montalban Navigator</title>
+    <link rel="stylesheet" href="../../frontend/mobile/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../web/index.html">Montalban Navigator</a>
+    </header>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Guide access</p>
+          <h1>Sign up or log in to manage your assigned tours.</h1>
+          <p class="hero-text">Apply to become a guide. Once Admin approves your application, use your contact number and password to enter the guide dashboard.</p>
+        </div>
+        <div class="hero-card">
+          <div class="section-heading compact-heading">
+            <p class="eyebrow">Log in</p>
+            <h2>Approved guides</h2>
+          </div>
+          <form id="guide-auth-login-form" class="booking-form">
+            <label for="guide-auth-contact">Approved contact number</label>
+            <input id="guide-auth-contact" type="tel" placeholder="0917-123-4567" required />
+            <label for="guide-auth-password">Password</label>
+            <input id="guide-auth-password" type="password" required />
+            <button class="btn btn-primary" type="submit">Log in</button>
+            <p id="guide-auth-login-message" class="success-message" hidden></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="section-heading">
+          <p class="eyebrow">Guide application</p>
+          <h2>Apply from your phone</h2>
+        </div>
+        <form id="guide-auth-application-form" class="booking-form">
+          <label for="guide-auth-name">Full name</label>
+          <input id="guide-auth-name" name="name" required />
+          <label for="guide-auth-specialty">Specialty</label>
+          <input id="guide-auth-specialty" name="specialty" placeholder="Nature trails" required />
+          <label for="guide-auth-contact-application">Contact number</label>
+          <input id="guide-auth-contact-application" name="contact" type="tel" required />
+          <label for="guide-auth-password-application">Create password</label>
+          <input id="guide-auth-password-application" name="password" type="password" minlength="6" required />
+          <label for="guide-auth-availability">Availability</label>
+          <input id="guide-auth-availability" name="availability" placeholder="Weekends" required />
+          <button class="btn btn-primary" type="submit">Submit application</button>
+          <p id="guide-auth-application-message" class="success-message" hidden></p>
+        </form>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/mobile/js/guide-auth.js"></script>
+  </body>
+</html>
