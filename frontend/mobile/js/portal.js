@@ -38,10 +38,22 @@ function renderGuidePage(state) {
   const currentGuide = approvedGuides.find((guide) => normalizeGuideContact(guide.contact) === signedInGuideContact)?.name || '';
   const overview = document.getElementById('guide-overview-summary');
   if (overview) {
-    const assignedBookings = state.bookings.filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status !== 'Completed');
-    overview.textContent = assignedBookings.length
-      ? `${assignedBookings.length} assigned tour${assignedBookings.length === 1 ? '' : 's'} scheduled.`
-      : 'No tours scheduled yet.';
+    const assignedBookings = state.bookings
+      .filter((booking) => currentGuide && booking.assignedGuide === currentGuide && ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))
+      .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
+    const completedCount = state.bookings.filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status === 'Completed').length;
+    const nextTourName = document.getElementById('guide-next-tour-name');
+    const nextTourDetails = document.getElementById('guide-next-tour-details');
+    if (assignedBookings.length) {
+      const next = assignedBookings[0];
+      overview.textContent = `Next: ${next.attractionName || 'Tour'} on ${next.date}${next.time ? ` at ${next.time}` : ''} • ${assignedBookings.length} upcoming, ${completedCount} completed.`;
+      if (nextTourName) nextTourName.textContent = next.attractionName || 'Assigned tour';
+      if (nextTourDetails) nextTourDetails.textContent = `${next.date}${next.time ? ` • ${next.time}` : ''} • ${next.status || 'Assigned'}`;
+    } else {
+      overview.textContent = completedCount ? `No upcoming tours. ${completedCount} completed so far.` : 'No tours scheduled yet.';
+      if (nextTourName) nextTourName.textContent = 'No upcoming tour';
+      if (nextTourDetails) nextTourDetails.textContent = completedCount ? `${completedCount} completed tour${completedCount === 1 ? '' : 's'}` : 'Your assigned tours will appear here.';
+    }
   }
 
   const guideInfoList = document.getElementById('guide-info-list');
@@ -51,178 +63,76 @@ function renderGuidePage(state) {
       const card = document.createElement('article');
       card.className = 'dashboard-card';
       card.innerHTML = `
-        <h3>${guide.name}</h3>
-        <p><strong>Specialty:</strong> ${guide.specialty}</p>
-        <p><strong>Contact:</strong> ${guide.contact}</p>
-        <p><strong>Availability:</strong> ${guide.availability}</p>
+        <h3>${escapeHtml(guide.name)}</h3>
+        <p><strong>Specialty:</strong> ${escapeHtml(guide.specialty)}</p>
+        <p><strong>Contact:</strong> ${escapeHtml(guide.contact)}</p>
+        <p><strong>Availability:</strong> ${escapeHtml(guide.availability)}</p>
       `;
       guideInfoList.appendChild(card);
     });
   }
 
-  const bookingList = document.getElementById('guide-bookings-list');
-  if (bookingList) {
-    bookingList.innerHTML = '';
-    const assignedBookings = state.bookings.filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status === 'Completed');
-    assignedBookings.forEach((booking) => {
-      const attraction = state.attractions.find((item) => item.id === booking.attractionId);
-      const card = document.createElement('article');
-      card.className = 'dashboard-card';
-      card.innerHTML = `
-        <h3>${booking.attractionName}</h3>
-        <p><strong>Traveler:</strong> ${booking.travelerName}</p>
-        <p><strong>Contact:</strong> ${booking.contact || 'Not provided'}</p>
-        <p><strong>Party:</strong> ${booking.adults || 0} adult(s), ${booking.kids || 0} child(ren), ${booking.pwd || 0} PWD</p>
-        <p><strong>Date:</strong> ${booking.date}</p>
-        <p><strong>Status:</strong> ${booking.status}</p>
-        <p><strong>Meeting point:</strong> ${booking.meetingPoint || attraction?.startPoint || 'To be confirmed'}</p>
-        ${attraction?.transportOptions?.length ? `<p><strong>Getting there:</strong> ${attraction.transportOptions.map((option) => `${option.mode}: ${option.fare}`).join(' • ')}</p>` : ''}
-        <p>${booking.notes}</p>
-        ${booking.status !== 'Completed' ? `<div class="filter-row">
-          <button class="btn btn-secondary" type="button" data-booking-status="Confirmed">Confirm</button>
-          <button class="btn btn-primary" type="button" data-booking-status="Completed">Complete</button>
-        </div>` : ''}
-      `;
-      card.querySelector('[data-booking-status="Confirmed"]')?.addEventListener('click', async () => {
-        await updateState((currentState) => ({
-          ...currentState,
-          bookings: currentState.bookings.map((item) => (item.id === booking.id ? { ...item, status: 'Confirmed' } : item))
-        }));
-      });
-      card.querySelector('[data-booking-status="Completed"]')?.addEventListener('click', async () => {
-        await updateState((currentState) => ({
-          ...currentState,
-          bookings: currentState.bookings.map((item) => (item.id === booking.id ? { ...item, status: 'Completed' } : item))
-        }));
-      });
-      bookingList.appendChild(card);
-    });
-  }
-
-  const scheduleList = document.getElementById('guide-schedule-list');
-  if (scheduleList) {
-    const scheduledBookings = state.bookings
-      .filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status !== 'Completed')
-      .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
-    scheduleList.innerHTML = '';
-    if (!scheduledBookings.length) {
-      scheduleList.innerHTML = '<p>No assigned tours have been scheduled yet.</p>';
-    }
-    scheduledBookings.forEach((booking) => {
-      const card = document.createElement('article');
-      card.className = 'dashboard-card';
-      card.innerHTML = `<h3>${escapeHtml(booking.date)}${booking.time ? ` at ${escapeHtml(booking.time)}` : ''}</h3>
-        <p><strong>Attraction:</strong> ${escapeHtml(booking.attractionName || '')}</p>
-        <p><strong>Traveler:</strong> ${escapeHtml(booking.travelerName || '')}</p>
-        <p><strong>Party:</strong> ${booking.adults || 0} adult(s), ${booking.kids || 0} child(ren), ${booking.pwd || 0} PWD</p>
-        <p><strong>Meeting point:</strong> ${escapeHtml(booking.meetingPoint || 'To be confirmed')}</p>
-        <p>${escapeHtml(booking.scheduleNotes || '')}</p>
-        <button class="btn btn-primary" type="button" data-schedule-complete>Complete tour</button>`;
-      card.querySelector('[data-schedule-complete]').addEventListener('click', async () => {
-        await updateState((currentState) => ({
-          ...currentState,
-          bookings: currentState.bookings.map((item) => item.id === booking.id ? { ...item, status: 'Completed' } : item)
-        }));
-      });
-      scheduleList.appendChild(card);
-    });
-  }
-
-  const visitorList = document.getElementById('guide-visitors-list');
-  if (visitorList) {
-    visitorList.innerHTML = '';
-    state.bookings.filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status !== 'Completed').slice(0, 3).forEach((booking) => {
-      const card = document.createElement('article');
-      card.className = 'dashboard-card';
-      card.innerHTML = `
-        <h3>${booking.travelerName}</h3>
-        <p>${booking.attractionName}</p>
-        <p>${booking.date}</p>
-        <p>${booking.status}</p>
-      `;
-      visitorList.appendChild(card);
-    });
-  }
-
+  window.GuideBookingsFeature?.render(state, currentGuide);
+  window.GuideScheduleFeature?.render(state, currentGuide);
 }
 
 // Guide tab navigation and portal startup
-function setupGuideApplication() {
-  const form = document.getElementById('guide-application-form');
-  if (!form || form.dataset.bound === 'true') return;
-  form.dataset.bound = 'true';
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(form);
-    await updateState((currentState) => ({
-      ...currentState,
-      guideApplications: [{
-        id: `guide-application-${Date.now()}`,
-        name: data.get('name') || '',
-        specialty: data.get('specialty') || '',
-        contact: data.get('contact') || '',
-        email: data.get('email') || '',
-        password: data.get('password') || '',
-        availability: data.get('availability') || '',
-        status: 'Pending'
-      }, ...(currentState.guideApplications || [])]
-    }));
-    form.reset();
-    const message = document.getElementById('guide-application-message');
-    if (message) {
-      message.textContent = 'Application submitted. Admin approval is required before you can receive bookings.';
-      message.hidden = false;
-    }
-
-  });
-}
-
-function setupGuideLogin() {
-  const form = document.getElementById('guide-login-form');
-  if (!form || form.dataset.bound === 'true') return;
-  form.dataset.bound = 'true';
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const contact = normalizeGuideContact(document.getElementById('guide-login-contact').value);
-    const password = document.getElementById('guide-login-password').value;
-    const guide = (appState?.guides || []).find((item) => normalizeGuideContact(item.contact) === contact && item.password === password);
-    const message = document.getElementById('guide-login-message');
-    if (!guide) {
-      message.textContent = 'Login failed. Use the approved contact number and password.';
-      message.hidden = false;
-      return;
-    }
-    signedInGuideContact = contact;
-    message.textContent = `Logged in as ${guide.name}.`;
-    message.hidden = false;
-    window.localStorage.setItem('montalban-guide-session', contact);
-    renderGuidePage(appState);
-    document.querySelector('[data-guide-tab="guide-schedule"]')?.click();
-  });
-}
-
 async function renderApp(state) {
   renderGuidePage(state);
 }
 
 function setupGuideTabs() {
   const showTab = (target) => {
-    const activeTab = document.querySelector(`[data-guide-tab="${target}"]`);
-    document.querySelectorAll('.guide-tab').forEach((item) => {
-        item.classList.toggle('is-active', item === activeTab);
-      item.setAttribute('aria-selected', item === activeTab ? 'true' : 'false');
+    document.querySelectorAll('[data-guide-tab]').forEach((item) => {
+      const isActive = item.dataset.guideTab === target;
+      item.classList.toggle('is-active', isActive);
+      item.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
     document.querySelectorAll('.guide-tab-panel').forEach((panel) => {
       panel.hidden = panel.id !== target;
     });
   };
 
-  document.querySelectorAll('.guide-tab').forEach((tab) => {
-    tab.addEventListener('click', () => showTab(tab.dataset.guideTab));
+  document.querySelectorAll('[data-guide-tab]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      showTab(tab.dataset.guideTab);
+      const dropdown = document.getElementById('guide-menu-dropdown');
+      if (dropdown && !dropdown.hidden) {
+        dropdown.hidden = true;
+        document.getElementById('guide-menu-toggle')?.setAttribute('aria-expanded', 'false');
+      }
+    });
   });
   document.querySelectorAll('[data-guide-tab-target]').forEach((button) => {
     button.addEventListener('click', () => showTab(button.dataset.guideTabTarget));
   });
+}
+
+function setupGuideMenu() {
+  const toggle = document.getElementById('guide-menu-toggle');
+  const dropdown = document.getElementById('guide-menu-dropdown');
+  if (!toggle || !dropdown) return;
+  toggle.addEventListener('click', () => {
+    const willOpen = dropdown.hidden;
+    dropdown.hidden = !willOpen;
+    toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  });
+  document.addEventListener('click', (event) => {
+    if (dropdown.hidden) return;
+    if (toggle.contains(event.target) || dropdown.contains(event.target)) return;
+    dropdown.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function setupGuideLogout() {
+  const logout = () => {
+    window.localStorage.removeItem('montalban-guide-session');
+    signedInGuideContact = '';
+    window.location.replace('guide-auth.html');
+  };
+  document.getElementById('guide-logout')?.addEventListener('click', logout);
+  document.getElementById('guide-settings-logout')?.addEventListener('click', logout);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -235,8 +145,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     year.textContent = new Date().getFullYear();
   }
   setupGuideTabs();
-  setupGuideApplication();
-  setupGuideLogin();
+  setupGuideMenu();
+  setupGuideLogout();
   appState = await loadState();
   await renderApp(appState);
 });

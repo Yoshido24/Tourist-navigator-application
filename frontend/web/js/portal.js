@@ -1,5 +1,5 @@
 
-// Tourist display helpers
+// Tourist display helpers shared by every feature module
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -51,239 +51,33 @@ function showUserTab(target) {
   });
 }
 
-function getAttractionPopup(attraction, coords) {
-  const trail = attraction.trail || attraction.route;
-  return `
-    <article class="map-popup">
-      <h3>${escapeHtml(attraction.name)}</h3>
-      <p>${escapeHtml(attraction.description || 'Explore this attraction.')}</p>
-      <p><strong>Fee:</strong> ${escapeHtml(attraction.fee || 'Contact admin')}</p>
-      ${trail ? `<p><strong>Trail or route:</strong> ${escapeHtml(trail)}</p>` : ''}
-    </article>
-  `;
-}
+function setupImageLightbox() {
+  const lightbox = document.getElementById('image-lightbox');
+  const image = document.getElementById('image-lightbox-image');
+  const closeButton = document.getElementById('image-lightbox-close');
+  if (!lightbox || !image || !closeButton) return;
 
-// Attraction list, selected attraction details, directions, and transport
-function renderUserPage(state) {
-  const attractionsList = document.getElementById('attraction-selector');
-  const selectedName = document.getElementById('selected-attraction-name');
-  const selectedDescription = document.getElementById('selected-attraction-description');
-  const selectedExpectations = document.getElementById('selected-attraction-expectations');
-  const selectedTerrain = document.getElementById('selected-attraction-terrain');
-  const selectedStartPoint = document.getElementById('selected-attraction-startpoint');
-  const selectedTrail = document.getElementById('selected-attraction-trail');
-  const gallery = document.getElementById('attraction-gallery');
-  const directionsSummary = document.getElementById('directions-summary');
-  const directionsMap = document.getElementById('directions-map');
-  const transportOptions = document.getElementById('transport-options');
-  const directionsActions = document.getElementById('directions-actions');
-  const placeSelect = document.getElementById('place');
+  const close = () => {
+    lightbox.hidden = true;
+    image.removeAttribute('src');
+  };
 
-  if (attractionsList) {
-    attractionsList.innerHTML = '';
-    state.attractions.forEach((attraction) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'attraction-option';
-      button.innerHTML = `
-        <span>${attraction.name}</span>
-        <strong>${attraction.fee}</strong>
-      `;
-      button.addEventListener('click', () => {
-        renderAttractionDetails(attraction);
-      });
-      attractionsList.appendChild(button);
-    });
-  }
+  window.openImageLightbox = (src, alt) => {
+    image.src = src;
+    image.alt = alt || '';
+    lightbox.hidden = false;
+    closeButton.focus();
+  };
 
-  if (placeSelect) {
-    const previousSelection = selectedUserAttractionId || placeSelect.value;
-    placeSelect.innerHTML = '';
-    state.attractions.forEach((attraction) => {
-      const option = document.createElement('option');
-      option.value = attraction.id;
-      option.textContent = attraction.name;
-      placeSelect.appendChild(option);
-    });
-    placeSelect.value = state.attractions.some((item) => item.id === previousSelection)
-      ? previousSelection
-      : '';
-    placeSelect.addEventListener('change', () => {
-      const attraction = state.attractions.find((item) => item.id === placeSelect.value);
-      if (attraction) renderAttractionDetails(attraction);
-    });
-  }
-
-  if (selectedName) selectedName.textContent = 'Select an attraction';
-  if (selectedDescription) selectedDescription.textContent = 'Choose a pin on the map or an attraction from the list to see its details.';
-  if (selectedExpectations) selectedExpectations.textContent = 'Waiting for an attraction selection.';
-  if (selectedTerrain) selectedTerrain.textContent = 'Waiting for an attraction selection.';
-  if (selectedStartPoint) selectedStartPoint.textContent = 'Waiting for an attraction selection.';
-  if (selectedTrail) selectedTrail.textContent = 'Waiting for an attraction selection.';
-  if (gallery) gallery.innerHTML = '';
-  if (directionsSummary) directionsSummary.textContent = 'Select an attraction to load its route and public transport details.';
-  if (directionsMap) {
-    directionsMap.removeAttribute('src');
-    directionsMap.hidden = true;
-  }
-  if (transportOptions) transportOptions.innerHTML = '<p class="muted">Select an attraction to see available public transport.</p>';
-  if (directionsActions) directionsActions.innerHTML = '';
-
-  const preservedAttraction = state.attractions.find((item) => item.id === selectedUserAttractionId);
-  if (preservedAttraction) {
-    renderAttractionDetails(preservedAttraction);
-  }
-
-  function renderAttractionDetails(attraction) {
-    if (selectedName) {
-      selectedName.textContent = attraction.name;
-    }
-    if (selectedDescription) {
-      selectedDescription.textContent = attraction.description;
-    }
-    if (selectedExpectations) {
-      selectedExpectations.textContent = attraction.expectations || 'A smooth, guided experience with friendly staff.';
-    }
-    if (selectedTerrain) {
-      selectedTerrain.textContent = attraction.terrain || 'Easy walking with support available.';
-    }
-    if (selectedStartPoint) {
-      selectedStartPoint.textContent = attraction.startPoint || 'Please contact the team for meetup details.';
-    }
-    if (selectedTrail) {
-      selectedTrail.textContent = attraction.trail || attraction.route || 'Route details will be confirmed by the attraction team.';
-    }
-
-    if (gallery) {
-      gallery.innerHTML = '';
-      (attraction.images || []).forEach((imageUrl) => {
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = attraction.name;
-        gallery.appendChild(img);
-      });
-    }
-
-    if (directionsSummary) {
-      const routeDetails = attraction.trail || attraction.route || 'Route details will be confirmed by the attraction team.';
-      directionsSummary.innerHTML = `<strong>${escapeHtml(attraction.name)}</strong>: ${escapeHtml(attraction.startPoint || 'Meet at the designated starting point.')}<br><span class="route-details"><strong>Trail or route:</strong> ${escapeHtml(routeDetails)}</span>`;
-    }
-    if (directionsMap) {
-      const [lat, lng] = getAttractionCoords(attraction);
-      directionsMap.src = attraction.directions || `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
-      directionsMap.hidden = false;
-    }
-    if (transportOptions) {
-      const rawOptions = attraction.transportOptions || attraction.transport_options || attraction.publicTransport || [];
-      const options = Array.isArray(rawOptions)
-        ? rawOptions
-        : (() => {
-          try { return JSON.parse(rawOptions); } catch { return []; }
-        })();
-      transportOptions.innerHTML = options.length
-        ? options.map((option) => `<article class="transport-option"><div class="transport-option-heading"><h4>${escapeHtml(option.mode || 'Public transport')}</h4><strong>${escapeHtml(option.fare || 'Fare not provided')}</strong></div><p>${escapeHtml(option.route || 'Route details not provided.')}</p>${option.time ? `<small>Estimated time: ${escapeHtml(option.time)}</small>` : ''}</article>`).join('')
-        : '<p class="muted">No public transport details have been added for this attraction yet.</p>';
-    }
-    if (directionsActions) {
-      const [lat, lng] = getAttractionCoords(attraction);
-      directionsActions.innerHTML = `<a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Open directions</a><a class="btn btn-secondary" target="_blank" rel="noopener" href="https://waze.com/ul?ll=${lat}%2C${lng}&navigate=yes">Open Waze</a>`;
-    }
-
-    if (placeSelect) {
-      placeSelect.value = attraction.id;
-      selectedUserAttractionId = attraction.id;
-    }
-
-    document.querySelectorAll('.attraction-option').forEach((button) => {
-      button.classList.toggle('active', button.textContent.includes(attraction.name));
-    });
-  }
-}
-
-// Tourist map and attraction pin selection
-function initMap(state) {
-  const mapElement = document.getElementById('tourist-map');
-  const detailsElement = document.getElementById('tourist-map-details');
-  if (!mapElement || typeof window.L === 'undefined') return;
-  if (touristMapInstance) {
-    touristMapInstance.remove();
-    touristMapInstance = null;
-  }
-  mapElement.innerHTML = '';
-  if (!state.attractions.length) {
-    if (detailsElement) detailsElement.innerHTML = '<p>No attractions have been published yet. Please check back soon.</p>';
-    return;
-  }
-  if (detailsElement) {
-    detailsElement.innerHTML = '<p class="map-loading">Loading attraction pins. Select a pin when the map is ready.</p>';
-  }
-
-  const firstCoords = getAttractionCoords(state.attractions[0]);
-  const mapCanvas = document.createElement('div');
-  mapCanvas.className = 'leaflet-map';
-  mapCanvas.id = 'tourist-map-canvas';
-  mapElement.appendChild(mapCanvas);
-  const map = window.L.map(mapCanvas.id, { zoomControl: true, scrollWheelZoom: true })
-    .setView(firstCoords, 13);
-  touristMapInstance = map;
-  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  const bounds = [];
-  state.attractions.forEach((attraction) => {
-    const coords = getAttractionCoords(attraction);
-    bounds.push(coords);
-    const marker = window.L.marker(coords).addTo(map);
-    marker.bindTooltip(attraction.name);
-    marker.bindPopup(getAttractionPopup(attraction, coords));
-    marker.on('click', () => selectAttraction(attraction, marker));
+  closeButton.addEventListener('click', close);
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) close();
   });
-  if (bounds.length > 1) map.fitBounds(bounds, { padding: [30, 30] });
-
-  const pinPanel = document.createElement('div');
-  pinPanel.className = 'map-pin-panel';
-  pinPanel.innerHTML = '<strong class="map-pin-panel-title">All attraction pins</strong>';
-  state.attractions.forEach((attraction) => {
-    const pin = document.createElement('button');
-    pin.type = 'button';
-    pin.className = 'map-pin-button';
-    pin.setAttribute('aria-label', `Show ${attraction.name} on the map`);
-    pin.innerHTML = `<span class="map-pin-icon" aria-hidden="true">📍</span><span>${escapeHtml(attraction.name)}</span>`;
-    pin.addEventListener('click', () => selectAttraction(attraction));
-    pinPanel.appendChild(pin);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !lightbox.hidden) close();
   });
-  mapElement.appendChild(pinPanel);
-  if (detailsElement) {
-    detailsElement.innerHTML = '<p>Select an attraction pin to view its details.</p>';
-  }
-
-  function selectAttraction(attraction, marker = null) {
-    const coords = getAttractionCoords(attraction);
-    map.setView(coords, 16);
-    marker?.openPopup();
-    mapElement.querySelectorAll('.map-pin-button').forEach((button) => {
-      button.classList.toggle('active', button.textContent.includes(attraction.name));
-    });
-    if (detailsElement) {
-      detailsElement.innerHTML = `
-        ${getAttractionPopup(attraction, coords)}
-        <p class="map-pin-note">Pinned location: ${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</p>
-        <button class="btn btn-secondary map-view-more" type="button">View more</button>
-      `;
-      detailsElement.querySelector('.map-view-more')?.addEventListener('click', () => {
-        showUserTab('user-attractions');
-        document.getElementById('selected-attraction-name')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
-    const placeSelect = document.getElementById('place');
-    if (placeSelect) {
-      placeSelect.value = attraction.id;
-      placeSelect.dispatchEvent(new Event('change'));
-    }
-  }
-
 }
+
 // Tourist tab navigation, including buttons that jump to Booking
 function setupUserTabs() {
   if (document.body.dataset.userTabsBound === 'true') {
@@ -295,24 +89,37 @@ function setupUserTabs() {
   document.querySelectorAll('[data-user-tab-target]').forEach((button) => {
     button.addEventListener('click', () => showUserTab(button.dataset.userTabTarget));
   });
-}
-// Booking submission and Mini Shop rendering
-function setupUserForms(state) {
-  window.UserBookingFeature?.setup(state);
-  window.UserShopFeature?.render(state);
+
+  const menuToggle = document.getElementById('user-menu-toggle');
+  const navigation = document.getElementById('user-navigation');
+  if (menuToggle && navigation) {
+    menuToggle.addEventListener('click', () => {
+      const isOpen = navigation.classList.toggle('is-open');
+      menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+    });
+
+    document.querySelectorAll('[data-user-tab]').forEach((tab) => tab.addEventListener('click', () => {
+      navigation.classList.remove('is-open');
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuToggle.setAttribute('aria-label', 'Open navigation menu');
+    }));
+  }
 }
 
-// Tourist portal startup
+// Tourist portal startup: delegates rendering to each feature module
 async function renderApp(state) {
-  renderUserPage(state);
-  setupUserForms(state);
+  window.UserAttractionsFeature?.render(state);
+  window.UserBookingFeature?.setup(state);
+  window.UserShopFeature?.render(state);
   setupUserTabs();
-  initMap(state);
+  window.UserMapFeature?.render(state);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   const year = document.getElementById('year');
   if (year) year.textContent = new Date().getFullYear();
+  setupImageLightbox();
   appState = await loadState();
   await renderApp(appState);
 
@@ -328,3 +135,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('focus', refreshWhenVisible);
   document.addEventListener('visibilitychange', refreshWhenVisible);
 });
+

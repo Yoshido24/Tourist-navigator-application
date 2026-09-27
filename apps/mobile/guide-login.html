@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide Log In | Montalban Navigator</title>
+    <link rel="stylesheet" href="../../frontend/mobile/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="guide-auth.html">Guide access</a>
+    </header>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Approved guides</p>
+          <h1>Log in to manage your assigned tours.</h1>
+          <p class="hero-text">Enter the contact number and password Admin approved for your account.</p>
+        </div>
+        <div class="hero-card">
+          <div class="section-heading compact-heading">
+            <p class="eyebrow">Log in</p>
+            <h2>Guide credentials</h2>
+          </div>
+          <form id="guide-auth-login-form" class="booking-form">
+            <label for="guide-auth-contact">Approved contact number</label>
+            <input id="guide-auth-contact" type="tel" placeholder="0917-123-4567" required />
+            <label for="guide-auth-password">Password</label>
+            <input id="guide-auth-password" type="password" required />
+            <button class="btn btn-primary" type="submit">Log in</button>
+            <p id="guide-auth-login-message" class="success-message" hidden></p>
+          </form>
+          <p class="guide-auth-switch">Not approved yet? <a href="guide-signup.html">Sign up here</a>.</p>
+        </div>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/mobile/js/guide-login.js"></script>
+  </body>
+</html>

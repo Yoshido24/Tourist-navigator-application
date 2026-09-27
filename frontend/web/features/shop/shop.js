@@ -18,6 +18,20 @@
         </article>
       `).join('')
       : '<p>No shop products have been published yet.</p>';
+
+    shop.querySelectorAll('.shop-card > img').forEach((image) => {
+      image.classList.add('clickable-image');
+      image.title = 'Open full image';
+      image.tabIndex = 0;
+      const openImage = () => window.openImageLightbox?.(image.src, image.alt);
+      image.addEventListener('click', openImage);
+      image.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openImage();
+        }
+      });
+    });
   }
 
   window.UserShopFeature = {

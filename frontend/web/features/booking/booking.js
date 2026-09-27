@@ -18,11 +18,20 @@
 
       const success = document.getElementById('booking-success');
       if (success) success.hidden = false;
+
+      const warning = document.getElementById('booking-sync-warning');
+      if (warning) {
+        if (window.lastSyncErrors?.bookings) {
+          warning.textContent = 'Your contact number and party size were saved on this device only. Reopening the booking on another device may show them as "Not provided" until the shared database is updated.';
+          warning.hidden = false;
+        } else {
+          warning.hidden = true;
+        }
+      }
+
       form.reset();
-      const place = document.getElementById('place');
-      if (place && selectedAttraction) {
-        place.value = selectedAttraction.id;
-        place.dispatchEvent(new Event('change'));
+      if (selectedAttraction) {
+        window.UserAttractionsFeature?.select?.(selectedAttraction);
       }
     });
   }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide Sign Up | Montalban Navigator</title>
+    <link rel="stylesheet" href="../../frontend/mobile/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="guide-auth.html">Guide access</a>
+    </header>
+    <main class="page-shell">
+      <section class="hero guide-application-layout">
+        <div class="hero-copy">
+          <p class="eyebrow">Guide application</p>
+          <h1>Apply to guide visitors through Montalban.</h1>
+          <p class="hero-text">Complete your profile and choose an interview schedule with the Tourism Office. Admin approval comes after the interview.</p>
+          <div class="dashboard-card">
+            <h3>Before you submit</h3>
+            <p>Prepare your valid ID details, guiding experience, availability, and a preferred interview schedule at the Tourism Office.</p>
+          </div>
+        </div>
+
+        <form id="guide-auth-application-form" class="booking-form hero-card">
+          <label for="guide-auth-name">Full name</label>
+          <input id="guide-auth-name" name="name" required />
+          <label for="guide-auth-email">Email address</label>
+          <input id="guide-auth-email" name="email" type="email" required />
+          <label for="guide-auth-specialty">Specialty</label>
+          <input id="guide-auth-specialty" name="specialty" placeholder="Nature trails" required />
+          <label for="guide-auth-contact-application">Contact number</label>
+          <input id="guide-auth-contact-application" name="contact" type="tel" required />
+          <label for="guide-auth-address">Home address</label>
+          <input id="guide-auth-address" name="address" required />
+          <label for="guide-auth-id-number">Valid ID number</label>
+          <input id="guide-auth-id-number" name="idNumber" required />
+          <label for="guide-auth-experience">Guiding experience</label>
+          <textarea id="guide-auth-experience" name="experience" rows="3" placeholder="Tell the Tourism Office about your experience." required></textarea>
+          <label for="guide-auth-password-application">Create password</label>
+          <input id="guide-auth-password-application" name="password" type="password" minlength="6" required />
+          <label for="guide-auth-availability">Availability</label>
+          <input id="guide-auth-availability" name="availability" placeholder="Weekends" required />
+          <fieldset class="guide-interview-fields">
+            <legend>Tourism Office interview</legend>
+            <p class="form-help">An interview is required before your guide account can be approved.</p>
+            <label for="guide-auth-interview-date">Preferred interview date</label>
+            <input id="guide-auth-interview-date" name="interviewDate" type="date" required />
+            <label for="guide-auth-interview-time">Preferred interview time</label>
+            <input id="guide-auth-interview-time" name="interviewTime" type="time" required />
+          </fieldset>
+          <button class="btn btn-primary" type="submit">Submit application</button>
+          <p id="guide-auth-application-message" class="success-message" hidden></p>
+        </form>
+        <p class="guide-auth-switch">Already approved? <a href="guide-login.html">Log in here</a>.</p>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/mobile/js/guide-signup.js"></script>
+  </body>
+</html>

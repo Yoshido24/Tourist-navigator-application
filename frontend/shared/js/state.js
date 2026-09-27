@@ -9,9 +9,7 @@ const STORE_NAMES = {
   shopProducts: 'shop_products'
 };
 const SHOP_CACHE_KEY = 'montalban-navigator-shop-products';
-const GUIDE_APPLICATION_CACHE_KEY = 'montalban-navigator-guide-applications';
 const ATTRACTION_CACHE_KEY = 'montalban-navigator-attractions';
-const BOOKING_CACHE_KEY = 'montalban-navigator-bookings';
 
 const USE_SUPABASE = typeof SUPABASE_URL !== 'undefined' &&
   typeof SUPABASE_ANON_KEY !== 'undefined' &&
@@ -39,23 +37,6 @@ function writeLocalShopProducts(items) {
   }
 }
 
-function readLocalGuideApplications() {
-  try {
-    return JSON.parse(window.localStorage.getItem(GUIDE_APPLICATION_CACHE_KEY) || '[]');
-  } catch (error) {
-    console.warn('Unable to read the local guide application cache.', error);
-    return [];
-  }
-}
-
-function writeLocalGuideApplications(items) {
-  try {
-    window.localStorage.setItem(GUIDE_APPLICATION_CACHE_KEY, JSON.stringify(items));
-  } catch (error) {
-    console.warn('Unable to write the local guide application cache.', error);
-  }
-}
-
 function readLocalAttractions() {
   try {
     return JSON.parse(window.localStorage.getItem(ATTRACTION_CACHE_KEY) || '[]');
@@ -70,23 +51,6 @@ function writeLocalAttractions(items) {
     window.localStorage.setItem(ATTRACTION_CACHE_KEY, JSON.stringify(items));
   } catch (error) {
     console.warn('Unable to write the local attraction cache.', error);
-  }
-
-  function readLocalBookings() {
-    try {
-      return JSON.parse(window.localStorage.getItem(BOOKING_CACHE_KEY) || '[]');
-    } catch (error) {
-      console.warn('Unable to read the local booking cache.', error);
-      return [];
-    }
-  }
-
-  function writeLocalBookings(items) {
-    try {
-      window.localStorage.setItem(BOOKING_CACHE_KEY, JSON.stringify(items));
-    } catch (error) {
-      console.warn('Unable to write the local booking cache.', error);
-    }
   }
 }
 
@@ -126,7 +90,8 @@ async function fetchOptionalSupabaseTable(tableName) {
 }
 
 async function persistSupabaseCollection(tableName, items, options = {}) {
-  const existing = await fetchSupabaseTable(tableName);
+  // Use the optional fetch so a missing/not-yet-migrated table doesn't block the upsert below.
+  const existing = await fetchOptionalSupabaseTable(tableName);
   const nextIds = new Set(items.map((item) => item.id));
   const removedIds = existing
     .map((item) => item.id)
@@ -134,26 +99,37 @@ async function persistSupabaseCollection(tableName, items, options = {}) {
 
   if (removedIds.length) {
     const { error } = await supabaseClient.from(tableName).delete().in('id', removedIds);
-    if (error) throw error;
+    if (error) console.warn(`Unable to remove stale rows from "${tableName}".`, error);
   }
 
   const payload = withCreatedAt(items);
-  const result = await supabaseClient.from(tableName).upsert(payload);
-  if (!result.error) return result;
 
-  if (options.retryWithout) {
-    const fallbackPayload = payload.map((item) => {
-      const copy = options.fallbackFields
-        ? Object.fromEntries(options.fallbackFields.filter((field) => field in item).map((field) => [field, item[field]]))
-        : { ...item };
-      options.retryWithout.forEach((field) => delete copy[field]);
+  // Only drop columns PostgREST actually reports as missing, one at a time, so a single
+  // unmigrated column (e.g. meetingPoint) never wipes out unrelated fields (e.g. contact).
+  const droppedFields = [];
+  let attemptPayload = payload;
+  let result;
+  for (let attempt = 0; attempt < (options.retryWithout || []).length + 1; attempt += 1) {
+    result = await supabaseClient.from(tableName).upsert(attemptPayload);
+    if (!result.error) {
+      if (droppedFields.length) {
+        console.warn(`Saved "${tableName}" without unsupported optional field(s): ${droppedFields.join(', ')}. Run the latest migration to restore them.`);
+      }
+      return result;
+    }
+
+    const missingField = /Could not find the '([^']+)' column/.exec(result.error.message || '')?.[1];
+    const fieldToDrop = missingField && (options.retryWithout || []).includes(missingField)
+      ? missingField
+      : null;
+    if (!fieldToDrop) break;
+
+    droppedFields.push(fieldToDrop);
+    attemptPayload = attemptPayload.map((item) => {
+      const copy = { ...item };
+      delete copy[fieldToDrop];
       return copy;
     });
-    const fallbackResult = await supabaseClient.from(tableName).upsert(fallbackPayload);
-    if (!fallbackResult.error) {
-      console.warn(`Saved "${tableName}" without unsupported optional fields. Run the latest migration to restore them.`);
-    }
-    return fallbackResult;
   }
 
   return result;
@@ -166,7 +142,6 @@ async function seedSupabaseDataIfEmpty() {
 
   await Promise.all([
     supabaseClient.from(STORE_NAMES.attractions).delete().in('id', ['waterfalls', 'heritage', 'market']),
-    supabaseClient.from(STORE_NAMES.bookings).delete().eq('id', 'booking-1'),
     supabaseClient.from(STORE_NAMES.guides).delete().in('id', ['guide-1', 'guide-2'])
   ]);
 
@@ -174,16 +149,13 @@ async function seedSupabaseDataIfEmpty() {
     fetchSupabaseTable(STORE_NAMES.attractions),
     fetchSupabaseTable(STORE_NAMES.bookings),
     fetchSupabaseTable(STORE_NAMES.guides),
-    fetchOptionalSupabaseTable(STORE_NAMES.guideApplications),
+    fetchSupabaseTable(STORE_NAMES.guideApplications),
     fetchOptionalSupabaseTable(STORE_NAMES.shopProducts)
   ]);
 
   const seedPromises = [];
   if (attractions.length === 0) {
     seedPromises.push(supabaseClient.from(STORE_NAMES.attractions).upsert(withCreatedAt(defaultState.attractions)));
-  }
-  if (bookings.length === 0) {
-    seedPromises.push(supabaseClient.from(STORE_NAMES.bookings).upsert(withCreatedAt(defaultState.bookings)));
   }
   if (guides.length === 0) {
     seedPromises.push(supabaseClient.from(STORE_NAMES.guides).upsert(withCreatedAt(defaultState.guides)));
@@ -204,12 +176,11 @@ async function loadStateFromSupabase() {
     fetchSupabaseTable(STORE_NAMES.attractions),
     fetchSupabaseTable(STORE_NAMES.bookings),
     fetchSupabaseTable(STORE_NAMES.guides),
-    fetchOptionalSupabaseTable(STORE_NAMES.guideApplications),
+    fetchSupabaseTable(STORE_NAMES.guideApplications),
     fetchOptionalSupabaseTable(STORE_NAMES.shopProducts)
   ]);
   const cachedShopProducts = readLocalShopProducts();
   const localAttractions = readLocalAttractions();
-  const localGuideApplications = readLocalGuideApplications();
   const localAttractionById = new Map(localAttractions.map((item) => [item.id, item]));
   const mergedAttractions = attractions.map((attraction) => {
     const local = localAttractionById.get(attraction.id);
@@ -218,18 +189,11 @@ async function loadStateFromSupabase() {
       : attraction;
   });
 
-  const localBookings = readLocalBookings();
-  const localBookingById = new Map(localBookings.map((item) => [item.id, item]));
-  const mergedBookings = bookings.map((booking) => ({ ...localBookingById.get(booking.id), ...booking }));
-  localBookings.forEach((booking) => {
-    if (!mergedBookings.some((item) => item.id === booking.id)) mergedBookings.push(booking);
-  });
-
   return {
     attractions: mergedAttractions.length ? mergedAttractions : (localAttractions.length ? localAttractions : defaultState.attractions),
-    bookings: mergedBookings.length ? mergedBookings.map(normalizeBooking) : defaultState.bookings,
+    bookings: bookings.map(normalizeBooking),
     guides: guides.length ? guides : defaultState.guides,
-    guideApplications: guideApplications.length ? guideApplications : (localGuideApplications.length ? localGuideApplications : defaultState.guideApplications),
+    guideApplications,
     shopProducts: shopProducts.length ? shopProducts : (cachedShopProducts.length ? cachedShopProducts : defaultState.shopProducts)
   };
 }
@@ -239,29 +203,27 @@ async function persistStateToSupabase(state) {
     return state;
   }
 
-  writeLocalGuideApplications(state.guideApplications || []);
   writeLocalAttractions(state.attractions || []);
-  writeLocalBookings(state.bookings || []);
   writeLocalShopProducts(state.shopProducts || []);
-  writeLocalGuideApplications(state.guideApplications || []);
 
+  const previousState = appState || {};
+  const changed = (collection) => JSON.stringify(previousState[collection] || []) !== JSON.stringify(state[collection] || []);
   const [attractionsResult, bookingsResult, guidesResult, guideApplicationsResult, shopProductsResult] = await Promise.all([
-    persistSupabaseCollection(STORE_NAMES.attractions, state.attractions, {
+    changed('attractions') ? persistSupabaseCollection(STORE_NAMES.attractions, state.attractions, {
       retryWithout: ['transportOptions']
-    }),
-    persistSupabaseCollection(STORE_NAMES.bookings, state.bookings, {
-      retryWithout: ['time', 'meetingPoint', 'scheduleNotes', 'contact', 'adults', 'kids', 'pwd', 'created_at'],
-      fallbackFields: ['id', 'attractionId', 'attractionName', 'travelerName', 'date', 'notes', 'status', 'assignedGuide']
-    }),
-    persistSupabaseCollection(STORE_NAMES.guides, state.guides, {
-      retryWithout: ['email', 'password']
-    }),
-    persistSupabaseCollection(STORE_NAMES.guideApplications, state.guideApplications || [], {
-      retryWithout: ['email', 'password']
-    }).catch((error) => ({ error })),
-    persistSupabaseCollection(STORE_NAMES.shopProducts, state.shopProducts || []).catch((error) => ({
+    }) : { error: null },
+    changed('bookings') ? persistSupabaseCollection(STORE_NAMES.bookings, state.bookings, {
+      retryWithout: ['time', 'meetingPoint', 'scheduleNotes', 'contact', 'adults', 'kids', 'pwd', 'guideNote', 'created_at']
+    }) : { error: null },
+    changed('guides') ? persistSupabaseCollection(STORE_NAMES.guides, state.guides, {
+      retryWithout: ['email', 'password', 'address', 'idNumber', 'experience']
+    }) : { error: null },
+    changed('guideApplications') ? persistSupabaseCollection(STORE_NAMES.guideApplications, state.guideApplications || [], {
+      retryWithout: ['email', 'password', 'address', 'idNumber', 'experience', 'interviewDate', 'interviewTime', 'interviewLocation']
+    }).catch((error) => ({ error })) : { error: null },
+    changed('shopProducts') ? persistSupabaseCollection(STORE_NAMES.shopProducts, state.shopProducts || []).catch((error) => ({
       error
-    }))
+    })) : { error: null }
   ]);
 
   if (attractionsResult.error || bookingsResult.error || guidesResult.error) {
@@ -271,8 +233,16 @@ async function persistStateToSupabase(state) {
     console.warn('Optional shop product save failed. Run the shop_products migration to enable it.', shopProductsResult.error);
   }
   if (guideApplicationsResult.error) {
-    console.warn('Guide applications are stored locally until the guide_applications migration is run.', guideApplicationsResult.error);
+    console.warn('Guide application save failed. Run the guide_applications migration and check Supabase permissions.', guideApplicationsResult.error);
   }
+  // Let callers (e.g. the guide sign-up form) know whether the shared save actually reached Supabase.
+  window.lastSyncErrors = {
+    attractions: attractionsResult.error || null,
+    bookings: bookingsResult.error || null,
+    guides: guidesResult.error || null,
+    guideApplications: guideApplicationsResult.error || null,
+    shopProducts: shopProductsResult.error || null
+  };
   if (attractionsResult.error || bookingsResult.error || guidesResult.error) {
     return state;
   }
@@ -304,7 +274,7 @@ function normalizeBooking(booking) {
   const rawStatus = String(booking.status || 'Pending').toLowerCase();
   const status = rawStatus === 'completed'
     ? 'Completed'
-    : ['approved', 'assigned', 'confirmed'].includes(rawStatus)
+    : ['approved', 'assigned', 'confirmed', 'ongoing'].includes(rawStatus)
       ? rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1)
       : 'Pending';
   return {
@@ -466,8 +436,6 @@ async function persistState(state) {
       replaceItemsInStore(database, STORE_NAMES.guideApplications, state.guideApplications || []),
       replaceItemsInStore(database, STORE_NAMES.shopProducts, state.shopProducts || [])
     ]);
-    writeLocalBookings(state.bookings || []);
-    writeLocalGuideApplications(state.guideApplications || []);
     return state;
   } catch (error) {
     console.warn('Unable to save the shared database.', error);
@@ -480,7 +448,10 @@ async function updateState(updater) {
   const nextState = updater(currentState);
   const savedState = await persistState(nextState);
   appState = savedState;
-  await renderApp(savedState);
+  // Pages without a portal.js (e.g. the guide login/sign-up forms) don't define renderApp.
+  if (typeof renderApp === 'function') {
+    await renderApp(savedState);
+  }
   return savedState;
 }
 

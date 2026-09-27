@@ -89,22 +89,39 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem 1.5rem;
-  max-width: 1180px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 1.2rem 2rem;
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   font-weight: 800;
   color: var(--primary-dark);
   text-decoration: none;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .nav-links {
   display: flex;
   gap: 1rem;
+  margin-left: auto;
+  justify-content: flex-end;
   flex-wrap: wrap;
+}
+
+.topbar > .nav-links {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .nav-links a {
@@ -365,6 +382,15 @@ img {
   display: flex;
   gap: 1rem;
   padding: 1.1rem;
+}
+
+.shop-card > img,
+.shop-product-image {
+  width: 128px;
+  height: 128px;
+  flex: 0 0 128px;
+  object-fit: cover;
+  border-radius: 14px;
 }
 
 .shop-card-content {
@@ -697,6 +723,34 @@ img {
   border-radius: 14px;
 }
 
+.clickable-image {
+  cursor: pointer;
+}
+
+.clickable-image:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.image-lightbox-card {
+  position: relative;
+  width: min(1000px, 100%);
+  max-height: 92vh;
+  padding: 1rem;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
+}
+
+.image-lightbox-image {
+  display: block;
+  width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  border-radius: 14px;
+  margin-top: 1rem;
+}
+
 .detail-grid {
   display: grid;
   gap: 1rem;
@@ -877,6 +931,15 @@ img {
   font-weight: 600;
 }
 
+.booking-sync-warning {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+}
+
 .stats-row {
   display: grid;
   gap: 1rem;
@@ -901,6 +964,63 @@ img {
   padding-bottom: 2rem;
   color: var(--muted);
   text-align: center;
+}
+
+.user-menu-toggle {
+  display: none;
+}
+
+.user-responsive-portal .topbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem 1rem;
+}
+
+.user-responsive-portal .user-tabs {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  margin-left: 0;
+}
+
+/* Below desktop width the full tab row can't fit without wrapping onto
+   several lines and stretching the header, so collapse it into a single
+   toggle ("bubble") button on phones and tablets instead. */
+@media (max-width: 1023px) {
+  .user-responsive-portal .topbar {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .user-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--primary-dark);
+    font-size: 1.35rem;
+    cursor: pointer;
+  }
+
+  .user-tabs:not(.is-open) {
+    display: none;
+  }
+
+  .user-tabs.is-open {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .user-tabs.is-open .user-tab {
+    width: 100%;
+    text-align: left;
+  }
 }
 
 @media (max-width: 860px) {
@@ -954,9 +1074,23 @@ img {
 
 @media (max-width: 640px) {
   .topbar {
-    flex-direction: column;
-    gap: 0.85rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.7rem;
     padding: 1rem;
+  }
+
+  .brand {
+    gap: 0.4rem;
+    font-size: 1rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
   }
 
   .page-shell,
@@ -969,7 +1103,9 @@ img {
   .nav-links {
     display: flex;
     gap: 0.7rem;
-    width: 100%;
+    margin-left: auto;
+    justify-content: flex-end;
+    width: auto;
   }
 
   .nav-links a,
@@ -994,6 +1130,75 @@ img {
 
   .detail-gallery img {
     height: 190px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1100px) {
+  .user-responsive-portal .feature-grid,
+  .user-responsive-portal .portal-grid,
+  .user-responsive-portal .shop-grid,
+  .user-responsive-portal .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .user-responsive-portal .tourist-map-layout,
+  .user-responsive-portal .map-shell,
+  .user-responsive-portal .attraction-shell,
+  .user-responsive-portal .booking-panel,
+  .user-responsive-portal .booking-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+.user-responsive-portal .section-heading {
+  margin-bottom: 0.75rem;
+}
+
+.user-responsive-portal .feature-grid,
+.user-responsive-portal .portal-grid,
+.user-responsive-portal .shop-grid,
+.user-responsive-portal .dashboard-grid,
+.user-responsive-portal .tourist-map-layout,
+.user-responsive-portal .attraction-shell,
+.user-responsive-portal .booking-panel,
+.user-responsive-portal .booking-wrapper {
+  gap: 0.75rem;
+}
+
+@media (max-width: 1100px) {
+  .user-responsive-portal .page-shell,
+  .user-responsive-portal .section,
+  .user-responsive-portal .footer {
+    padding-top: 1.1rem;
+    padding-bottom: 1.1rem;
+  }
+
+  .user-responsive-portal .hero {
+    gap: 1.25rem;
+    padding-top: 1.25rem;
+  }
+
+  .user-responsive-portal .hero-actions,
+  .user-responsive-portal .filter-row {
+    margin-top: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .user-responsive-portal .page-shell,
+  .user-responsive-portal .section,
+  .user-responsive-portal .footer {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  .user-responsive-portal .section-alt {
+    border-radius: 18px;
+  }
+
+  .user-responsive-portal .hero h1,
+  .user-responsive-portal .section h2 {
+    margin-bottom: 0.7rem;
   }
 }
 
