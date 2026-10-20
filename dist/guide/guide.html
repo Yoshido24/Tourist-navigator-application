@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide Portal | Montalban Navigator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/frontend/mobile/css/portal.css" />
+  </head>
+  <body class="guide-mobile-portal">
+    <header class="topbar">
+      <a class="brand" href="guide-auth.html">
+        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/666495367_942507755196296_8478441648281040178_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx600x600&amp;ctp=s600x600&amp;_nc_cat=104&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeFJjOkvwR1LTBcd-ukCdIVin81sb4V4AfGfzWxvhXgB8cq9GVJY6gVCoJUQxuNEYvdSiGuJhuqHvjXrotFk5OZK&amp;_nc_ohc=lYsUDrgVYg8Q7kNvwH_r7u3&amp;_nc_oc=AdqAFLsjE4bM_qGSNWnbA-u1DjX0TzTb1eW-nfbzUhzKRBVsRPW_NY9qt4WYZjhoudk&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=0e37PKDMBWv1g8j56QbHLg&amp;_nc_ss=7b2a8&amp;oh=00_AQIrJjeoGqSPLZLIc2tra0KL0-KcRbzaFlG50hJ40vPC4w&amp;oe=6ABB0C63" alt="Montalban Tourism logo" />
+        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/273650543_313668970801003_3153621589256724843_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx960x960&amp;ctp=s960x960&amp;_nc_cat=111&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeF67zClS5dA84yY7EJQ9KEjAi2qRGiNL3cCLapEaI0vd-BygJRZBqMXu84p5-srsXtYrT6tkkYpxwJFoM-EScD1&amp;_nc_ohc=142XgEnnH3sQ7kNvwEkl0Ca&amp;_nc_oc=AdrzETOBBKhtskP0ICZtbduAqfUp9hcAupRc0KoMh7MRTFFCYG30vRG-wK0-T-F7ugM&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=A40C89n_t5xeSxPnP_PpoQ&amp;_nc_ss=7b2a8&amp;oh=00_AQKLdXmsvIZWCiq8pwTh5cp7xQeFh71sqruA5oAg2aMUpA&amp;oe=6ABB0C8F" alt="Montalban logo" />
+        <span>Guide access</span>
+      </a>
+      <nav class="nav-links guide-tabs" aria-label="Guide sections" role="tablist">
+        <button class="guide-tab is-active" type="button" role="tab" aria-selected="true" data-guide-tab="guide-overview">Overview</button>
+        <div class="guide-menu">
+          <button class="btn btn-secondary guide-menu-toggle" type="button" id="guide-menu-toggle" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+          <div class="guide-menu-dropdown" id="guide-menu-dropdown" hidden>
+            <button class="guide-menu-item" type="button" role="tab" aria-selected="false" data-guide-tab="guide-account">Account</button>
+            <button class="guide-menu-item" type="button" role="tab" aria-selected="false" data-guide-tab="guide-settings">Settings</button>
+            <button class="guide-menu-item" type="button" id="guide-logout">Log out</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section id="guide-overview" class="hero guide-tab-panel" role="tabpanel">
+        <div class="hero-copy">
+          <p class="eyebrow">Guide portal</p>
+          <h1>Stay organized with bookings, arrivals, and daily tour plans.</h1>
+          <p class="hero-text">
+            Guides can review upcoming requests, confirm visitor arrival lists, and keep each tour on track.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-guide-tab-target="guide-schedule">New bookings</button>
+            <button class="btn btn-secondary" type="button" data-guide-tab-target="guide-bookings">Booking history</button>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-top">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="mock-map">
+            <div class="route-preview" aria-live="polite">
+              <span class="route-preview-label">Next tour</span>
+              <div class="schedule-strip-main">
+                <strong id="guide-next-tour-name">No upcoming tour</strong>
+                <span id="guide-next-tour-details">Your assigned tours will appear here.</span>
+              </div>
+            </div>
+          </div>
+          <div class="mock-details">
+            <h3>Today’s overview</h3>
+            <p id="guide-overview-summary">No tours scheduled yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="guide-account" class="section section-alt guide-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Account</p>
+          <h2>Your guide profile.</h2>
+        </div>
+        <div id="guide-info-list" class="dashboard-grid"></div>
+      </section>
+
+      <section id="guide-settings" class="section guide-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Settings</p>
+          <h2>Manage your session.</h2>
+        </div>
+        <article class="dashboard-card">
+          <h3>Session</h3>
+          <p>You are signed in on this device. Log out below if this is a shared device.</p>
+          <button class="btn btn-secondary" type="button" id="guide-settings-logout">Log out</button>
+        </article>
+      </section>
+
+      <section id="guide-schedule" class="section section-alt guide-tab-panel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Daily schedule</p>
+          <h2>Plan the day around your assigned tours.</h2>
+        </div>
+        <div class="hero-actions section-actions">
+          <button class="btn btn-primary" type="button" data-guide-tab-target="guide-schedule">Daily schedule</button>
+          <button class="btn btn-secondary" type="button" data-guide-tab-target="guide-bookings">Booking history</button>
+        </div>
+        <div id="guide-schedule-list" class="dashboard-grid"></div>
+      </section>
+
+      <section id="guide-bookings" class="section guide-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Booking history</p>
+          <h2>Review all tours assigned to you.</h2>
+        </div>
+        <div class="hero-actions section-actions">
+          <button class="btn btn-primary" type="button" data-guide-tab-target="guide-schedule">Daily schedule</button>
+          <button class="btn btn-secondary" type="button" data-guide-tab-target="guide-bookings">Booking history</button>
+        </div>
+        <p id="guide-bookings-sync-warning" class="sync-warning" hidden></p>
+        <div id="guide-bookings-list" class="dashboard-grid"></div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>© <span id="year"></span> Montalban Navigator. Built for guides.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/frontend/shared/config/supabase.public.js"></script>
+    <script src="/frontend/shared/js/state.js"></script>
+    <script src="/frontend/mobile/features/bookings/bookings.js"></script>
+    <script src="/frontend/mobile/features/schedule/schedule.js"></script>
+    <script src="/frontend/mobile/js/portal.js"></script>
+
+  </body>
+</html>

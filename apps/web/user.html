@@ -153,7 +153,15 @@
               <label for="notes">Notes</label>
               <textarea id="notes" name="notes" rows="3" placeholder="Tell us what you want to experience."></textarea>
 
+              <label class="checkbox-row" for="booking-terms">
+                <input id="booking-terms" name="terms" type="checkbox" required />
+                <span>I agree to the <a href="legal.html#terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="legal.html#privacy" target="_blank" rel="noopener">Privacy Notice</a>, including the processing of my details to arrange this tour.</span>
+              </label>
+
+              <div id="booking-captcha" aria-label="Human verification"></div>
+
               <button class="btn btn-primary" type="submit">Confirm booking</button>
+              <p id="booking-error" class="success-message error-message" role="alert" hidden></p>
               <p id="booking-success" class="success-message" hidden>
                 Booking confirmed! Use the directions below to reach the site.
               </p>

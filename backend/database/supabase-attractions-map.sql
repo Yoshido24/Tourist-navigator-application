@@ -60,10 +60,7 @@ create table if not exists public.guide_applications (
   status text not null default 'Pending',
   created_at timestamptz not null default now()
 );
-alter table public.guide_applications disable row level security;
-grant select, insert, update, delete on table public.guide_applications to anon;
 alter table public.guide_applications add column if not exists email text;
-alter table public.guide_applications add column if not exists password text;
 alter table public.guide_applications add column if not exists address text;
 alter table public.guide_applications add column if not exists "idNumber" text;
 alter table public.guide_applications add column if not exists experience text;
@@ -76,7 +73,6 @@ alter table public.guides add column if not exists name text;
 alter table public.guides add column if not exists contact text;
 alter table public.guides add column if not exists availability text;
 alter table public.guides add column if not exists email text;
-alter table public.guides add column if not exists password text;
 alter table public.guides add column if not exists address text;
 alter table public.guides add column if not exists "idNumber" text;
 alter table public.guides add column if not exists experience text;
@@ -127,15 +123,7 @@ alter table public.bookings alter column id type text using id::text;
 -- Make PostgREST (the Supabase API used by the app) refresh its column cache now.
 notify pgrst, 'reload schema';
 
--- Development only: this app currently has no admin login and uses the anon key.
--- Disable RLS so the admin page can save and the tourist page can read these tables.
-alter table public.attractions disable row level security;
-alter table public.guides disable row level security;
-alter table public.bookings disable row level security;
-
-grant select, insert, update, delete on table public.attractions to anon;
-grant select, insert, update, delete on table public.guides to anon;
-grant select, insert, update, delete on table public.bookings to anon;
+-- Access control lives in security-lockdown.sql. Run it after this file.
 
 create table if not exists public.shop_products (
   id text primary key,
@@ -152,8 +140,6 @@ alter table public.shop_products add column if not exists description text;
 alter table public.shop_products add column if not exists availability text;
 alter table public.shop_products add column if not exists image text;
 alter table public.shop_products add column if not exists created_at timestamptz not null default now();
-alter table public.shop_products disable row level security;
-grant select, insert, update, delete on table public.shop_products to anon;
 
 -- Remove the original demo records. This is intentionally limited to the
 -- IDs shipped by the demo so newly added attractions, bookings, and guides

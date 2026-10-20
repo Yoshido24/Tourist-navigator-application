@@ -112,7 +112,7 @@ function renderAdminPage(state) {
         <p><strong>Address:</strong> ${escapeHtml(application.address || 'Not provided')}</p>
         <p><strong>Valid ID:</strong> ${escapeHtml(application.idNumber || 'Not provided')}</p>
         <p><strong>Experience:</strong> ${escapeHtml(application.experience || 'Not provided')}</p>
-        <p><strong>Login ID:</strong> ${escapeHtml(application.email || 'Created after approval')}</p>
+        <p><strong>Login email:</strong> ${escapeHtml(application.email || 'Not provided')}</p>
         <p><strong>Availability:</strong> ${escapeHtml(application.availability || 'Not provided')}</p>
         <p><strong>Interview:</strong> ${escapeHtml(application.interviewDate || 'Not scheduled')} ${escapeHtml(application.interviewTime || '')} at ${escapeHtml(application.interviewLocation || 'Montalban Tourism Office')}</p>
         <div class="attraction-management-actions">
@@ -122,6 +122,7 @@ function renderAdminPage(state) {
         <p class="application-sync-warning" hidden></p>
       `;
       card.querySelector('[data-approve-application]').addEventListener('click', async () => {
+        if (!window.confirm(`Confirm that ${application.name} completed the interview at the Tourism Office, then approve this guide?`)) return;
         await updateState((currentState) => ({
           ...currentState,
           guides: [{
@@ -134,7 +135,7 @@ function renderAdminPage(state) {
             experience: application.experience || '',
             availability: application.availability || '',
             email: application.email || '',
-            password: application.password || ''
+            auth_user_id: application.auth_user_id || null
           }, ...currentState.guides.filter((guide) => guide.id !== application.id)],
           guideApplications: (currentState.guideApplications || []).map((item) => (
             item.id === application.id ? { ...item, status: 'Approved' } : item
@@ -238,7 +239,6 @@ function setupAdminControls() {
     window.setTimeout(() => window.adminAttractionMap?.invalidateSize(), 0);
   };
   document.querySelectorAll('#open-attractions-btn, [data-open-attractions]').forEach((button) => {
-        if (!window.confirm(`Confirm that ${application.name} completed the interview at the Tourism Office, then approve this guide?`)) return;
     button.addEventListener('click', openAttractions);
   });
   document.querySelectorAll('#overview [data-admin-tab="attractions"]').forEach((button) => {
@@ -260,11 +260,72 @@ function setupAdminControls() {
   window.AdminShopFeature?.setup();
 }
 
+// Blocks the portal until an admin signs in; admin status comes from the JWT app_metadata set in Supabase.
+async function requireAdminSession() {
+  if (!supabaseClient) return true;
+  const session = await getAuthSession();
+  if (getSessionRole(session) === 'admin') return true;
+
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#0f172a;padding:1rem;';
+    overlay.innerHTML = `
+      <form class="booking-form hero-card" style="width:min(24rem,100%);">
+        <h2>Admin sign in</h2>
+        <label for="admin-email">Email</label>
+        <input id="admin-email" type="email" autocomplete="username" required />
+        <label for="admin-password">Password</label>
+        <input id="admin-password" type="password" autocomplete="current-password" required />
+        <button class="btn btn-primary" type="submit">Sign in</button>
+        <p class="success-message error-message" role="alert" hidden></p>
+      </form>`;
+    document.body.appendChild(overlay);
+    const form = overlay.querySelector('form');
+    const error = overlay.querySelector('.error-message');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const { data, error: signInError } = await supabaseClient.auth.signInWithPassword({
+        email: overlay.querySelector('#admin-email').value.trim(),
+        password: overlay.querySelector('#admin-password').value
+      });
+      if (signInError) {
+        error.textContent = `Sign in failed: ${signInError.message}`;
+        error.hidden = false;
+        return;
+      }
+      if (getSessionRole(data?.session) !== 'admin') {
+        await supabaseClient.auth.signOut();
+        error.textContent = 'Signed in, but this account has no admin role. Run the SQL that sets app_metadata role = admin for this email.';
+        error.hidden = false;
+        return;
+      }
+      overlay.remove();
+      resolve(true);
+    });
+  });
+}
+
+function setupAdminLogout() {
+  const nav = document.querySelector('.topbar .admin-tabs');
+  if (!nav || !supabaseClient) return;
+  const button = document.createElement('button');
+  button.className = 'admin-tab';
+  button.type = 'button';
+  button.textContent = 'Sign out';
+  button.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+  });
+  nav.appendChild(button);
+}
+
 async function renderApp(state) { renderAdminPage(state); }
 document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdminSession();
   const year = document.getElementById('year');
   if (year) year.textContent = new Date().getFullYear();
   setupAdminControls();
+  setupAdminLogout();
   appState = await loadState();
   await renderApp(appState);
 

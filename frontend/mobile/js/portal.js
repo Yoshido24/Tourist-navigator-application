@@ -24,18 +24,11 @@ function getAttractionCoords(attraction) {
 }
 
 // Guide overview, assigned bookings, schedule, and visitor list
-let signedInGuideContact = '';
-
-function normalizeGuideContact(value) {
-  return String(value || '').replace(/\D/g, '');
-}
+let signedInGuideUserId = '';
 
 function renderGuidePage(state) {
-  if (!signedInGuideContact) {
-    signedInGuideContact = normalizeGuideContact(window.localStorage.getItem('montalban-guide-session') || '');
-  }
-  const approvedGuides = state.guides.filter((guide) => guide.status !== 'Pending');
-  const currentGuide = approvedGuides.find((guide) => normalizeGuideContact(guide.contact) === signedInGuideContact)?.name || '';
+  const approvedGuides = state.guides.filter((guide) => guide.status !== 'Pending' && guide.auth_user_id === signedInGuideUserId);
+  const currentGuide = approvedGuides[0]?.name || '';
   const overview = document.getElementById('guide-overview-summary');
   if (overview) {
     const assignedBookings = state.bookings
@@ -126,9 +119,9 @@ function setupGuideMenu() {
 }
 
 function setupGuideLogout() {
-  const logout = () => {
-    window.localStorage.removeItem('montalban-guide-session');
-    signedInGuideContact = '';
+  const logout = async () => {
+    await supabaseClient?.auth.signOut();
+    signedInGuideUserId = '';
     window.location.replace('guide-auth.html');
   };
   document.getElementById('guide-logout')?.addEventListener('click', logout);
@@ -136,10 +129,12 @@ function setupGuideLogout() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!window.localStorage.getItem('montalban-guide-session')) {
+  const session = await getAuthSession();
+  if (!session || getSessionRole(session) !== 'authenticated') {
     window.location.replace('guide-auth.html');
     return;
   }
+  signedInGuideUserId = session.user.id;
   const year = document.getElementById('year');
   if (year) {
     year.textContent = new Date().getFullYear();
@@ -148,5 +143,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupGuideMenu();
   setupGuideLogout();
   appState = await loadState();
+  if (!appState.guides.some((guide) => guide.auth_user_id === signedInGuideUserId)) {
+    await supabaseClient.auth.signOut();
+    window.location.replace('guide-login.html');
+    return;
+  }
   await renderApp(appState);
 });

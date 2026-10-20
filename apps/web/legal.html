@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms and Privacy | Montalban Navigator</title>
+    <link rel="stylesheet" href="../../frontend/web/css/portal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">Montalban Navigator</a>
+      <button class="btn btn-secondary" type="button" data-legal-back>Close</button>
+    </header>
+    <main class="page-shell">
+      <!-- Draft text: have the Tourism Office or legal counsel review it before launch. -->
+      <section id="terms" class="dashboard-card">
+        <h1>Terms of Use</h1>
+        <ol>
+          <li>Montalban Navigator helps visitors discover attractions and request guided tours in Rodriguez (Montalban), Rizal.</li>
+          <li>A booking is a request. It is confirmed only after the Tourism Office approves it and assigns a guide.</li>
+          <li>Provide accurate information. Bookings with false details may be cancelled.</li>
+          <li>Follow the instructions of your guide and local rules. Hiking and outdoor activities carry risk; you join at your own risk and are responsible for your own safety and belongings.</li>
+          <li>Entrance, guide and other fees are paid as announced by the Tourism Office or the site operator.</li>
+          <li>Schedules and attractions may change or close because of weather, safety or official orders.</li>
+          <li>Do not misuse the system, attempt to bypass its security, or submit automated or abusive requests.</li>
+        </ol>
+      </section>
+
+      <section id="privacy" class="dashboard-card">
+        <h1>Privacy Notice</h1>
+        <p>This notice follows the Data Privacy Act of 2012 (Republic Act No. 10173).</p>
+        <ul>
+          <li><strong>What we collect:</strong> for visitors, your name, contact number, party size, preferred date and time, and notes. For guide applicants, also your email, address, valid ID number, experience, availability and interview schedule.</li>
+          <li><strong>Why:</strong> to process bookings, assign guides, contact you about your tour, and evaluate guide applications.</li>
+          <li><strong>Who sees it:</strong> Tourism Office administrators and, for bookings, the guide assigned to your tour. We do not sell your data.</li>
+          <li><strong>Storage and security:</strong> data is stored with our hosting provider (Supabase) with access controls. Passwords are stored only in hashed form.</li>
+          <li><strong>Retention:</strong> kept only as long as needed for tourism operations and record-keeping, then deleted.</li>
+          <li><strong>Your rights:</strong> you may ask to access, correct or delete your data, or withdraw consent, by contacting the Montalban Tourism Office.</li>
+        </ul>
+      </section>
+
+      <section id="guide-conduct" class="dashboard-card">
+        <h1>Guide Code of Conduct</h1>
+        <ol>
+          <li>Provide accurate application details and a valid government ID. Approval requires an interview at the Tourism Office.</li>
+          <li>Treat every visitor with courtesy and respect, including children and persons with disabilities.</li>
+          <li>Put visitor safety first: check conditions, brief visitors, and stop or cancel a tour when it is unsafe.</li>
+          <li>Charge only the fees set by the Tourism Office and do not solicit extra payments.</li>
+          <li>Respect the environment and cultural sites; leave no trash and do not remove natural materials.</li>
+          <li>Keep visitor information confidential and use it only for the assigned tour.</li>
+          <li>Do not share your account. The Tourism Office may suspend or remove guides who break these rules.</li>
+        </ol>
+        <button class="btn btn-primary" type="button" data-legal-back>Close and return</button>
+      </section>
+    </main>
+    <script>
+      document.querySelectorAll('[data-legal-back]').forEach((button) => button.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.close();
+          window.location.href = 'user.html';
+        }
+      }));
+    </script>
+  </body>
+</html>

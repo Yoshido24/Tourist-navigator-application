@@ -931,6 +931,24 @@ img {
   font-weight: 600;
 }
 
+.success-message.error-message {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.checkbox-row input {
+  width: auto;
+  margin-top: 0.2rem;
+}
+
 .booking-sync-warning {
   margin: 0;
   padding: 0.8rem 1rem;

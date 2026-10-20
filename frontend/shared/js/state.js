@@ -20,6 +20,18 @@ const USE_SUPABASE = typeof SUPABASE_URL !== 'undefined' &&
 
 const supabaseClient = USE_SUPABASE ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+// Roles come from Supabase Auth: 'admin' (app_metadata.role), 'authenticated' (guide) or 'anon'.
+async function getAuthSession() {
+  if (!supabaseClient) return null;
+  const { data } = await supabaseClient.auth.getSession();
+  return data?.session || null;
+}
+
+function getSessionRole(session) {
+  if (!session) return 'anon';
+  return session.user?.app_metadata?.role === 'admin' ? 'admin' : 'authenticated';
+}
+
 function readLocalShopProducts() {
   try {
     return JSON.parse(window.localStorage.getItem(SHOP_CACHE_KEY) || '[]');
@@ -135,48 +147,15 @@ async function persistSupabaseCollection(tableName, items, options = {}) {
   return result;
 }
 
-async function seedSupabaseDataIfEmpty() {
-  if (!supabaseClient) {
-    return;
-  }
-
-  await Promise.all([
-    supabaseClient.from(STORE_NAMES.attractions).delete().in('id', ['waterfalls', 'heritage', 'market']),
-    supabaseClient.from(STORE_NAMES.guides).delete().in('id', ['guide-1', 'guide-2'])
-  ]);
-
-  const [attractions, bookings, guides, guideApplications, shopProducts] = await Promise.all([
-    fetchSupabaseTable(STORE_NAMES.attractions),
-    fetchSupabaseTable(STORE_NAMES.bookings),
-    fetchSupabaseTable(STORE_NAMES.guides),
-    fetchSupabaseTable(STORE_NAMES.guideApplications),
-    fetchOptionalSupabaseTable(STORE_NAMES.shopProducts)
-  ]);
-
-  const seedPromises = [];
-  if (attractions.length === 0) {
-    seedPromises.push(supabaseClient.from(STORE_NAMES.attractions).upsert(withCreatedAt(defaultState.attractions)));
-  }
-  if (guides.length === 0) {
-    seedPromises.push(supabaseClient.from(STORE_NAMES.guides).upsert(withCreatedAt(defaultState.guides)));
-  }
-  if (seedPromises.length > 0) {
-    const results = await Promise.all(seedPromises);
-    for (const result of results) {
-      if (result.error) {
-        throw result.error;
-      }
-    }
-  }
-}
-
 async function loadStateFromSupabase() {
-  await seedSupabaseDataIfEmpty();
+  const role = getSessionRole(await getAuthSession());
+  // Row Level Security hides these tables from anon visitors, so only ask for what the role may read.
+  const empty = Promise.resolve([]);
   const [attractions, bookings, guides, guideApplications, shopProducts] = await Promise.all([
     fetchSupabaseTable(STORE_NAMES.attractions),
-    fetchSupabaseTable(STORE_NAMES.bookings),
-    fetchSupabaseTable(STORE_NAMES.guides),
-    fetchSupabaseTable(STORE_NAMES.guideApplications),
+    role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.bookings),
+    role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.guides),
+    role === 'admin' ? fetchOptionalSupabaseTable(STORE_NAMES.guideApplications) : empty,
     fetchOptionalSupabaseTable(STORE_NAMES.shopProducts)
   ]);
   const cachedShopProducts = readLocalShopProducts();
@@ -203,11 +182,27 @@ async function persistStateToSupabase(state) {
     return state;
   }
 
-  writeLocalAttractions(state.attractions || []);
-  writeLocalShopProducts(state.shopProducts || []);
-
+  const role = getSessionRole(await getAuthSession());
   const previousState = appState || {};
   const changed = (collection) => JSON.stringify(previousState[collection] || []) !== JSON.stringify(state[collection] || []);
+
+  if (role !== 'admin') {
+    // Guides may only change the status of their own assigned bookings; RLS enforces the rest.
+    if (role === 'authenticated' && changed('bookings')) {
+      const before = new Map((previousState.bookings || []).map((item) => [item.id, item]));
+      const updates = (state.bookings || []).filter((item) => before.get(item.id)?.status !== item.status);
+      const results = await Promise.all(updates.map((item) => (
+        supabaseClient.from(STORE_NAMES.bookings).update({ status: item.status }).eq('id', item.id)
+      )));
+      const failed = results.find((result) => result.error);
+      window.lastSyncErrors = { bookings: failed?.error || null };
+      if (failed) console.warn('Booking status save failed', failed.error);
+    }
+    return state;
+  }
+
+  writeLocalAttractions(state.attractions || []);
+  writeLocalShopProducts(state.shopProducts || []);
   const [attractionsResult, bookingsResult, guidesResult, guideApplicationsResult, shopProductsResult] = await Promise.all([
     changed('attractions') ? persistSupabaseCollection(STORE_NAMES.attractions, state.attractions, {
       retryWithout: ['transportOptions']
@@ -216,10 +211,10 @@ async function persistStateToSupabase(state) {
       retryWithout: ['time', 'meetingPoint', 'scheduleNotes', 'contact', 'adults', 'kids', 'pwd', 'guideNote', 'created_at']
     }) : { error: null },
     changed('guides') ? persistSupabaseCollection(STORE_NAMES.guides, state.guides, {
-      retryWithout: ['email', 'password', 'address', 'idNumber', 'experience']
+      retryWithout: ['email', 'address', 'idNumber', 'experience']
     }) : { error: null },
     changed('guideApplications') ? persistSupabaseCollection(STORE_NAMES.guideApplications, state.guideApplications || [], {
-      retryWithout: ['email', 'password', 'address', 'idNumber', 'experience', 'interviewDate', 'interviewTime', 'interviewLocation']
+      retryWithout: ['email', 'address', 'idNumber', 'experience', 'interviewDate', 'interviewTime', 'interviewLocation']
     }).catch((error) => ({ error })) : { error: null },
     changed('shopProducts') ? persistSupabaseCollection(STORE_NAMES.shopProducts, state.shopProducts || []).catch((error) => ({
       error

@@ -1,0 +1,6 @@
+{
+  "appId": "com.montalban.navigator.guide",
+  "appName": "Montalban Guide",
+  "webDir": "dist/guide",
+  "bundledWebRuntime": false
+}

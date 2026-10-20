@@ -38,7 +38,10 @@
           <label for="guide-auth-experience">Guiding experience</label>
           <textarea id="guide-auth-experience" name="experience" rows="3" placeholder="Tell the Tourism Office about your experience." required></textarea>
           <label for="guide-auth-password-application">Create password</label>
-          <input id="guide-auth-password-application" name="password" type="password" minlength="6" required />
+          <input id="guide-auth-password-application" name="password" type="password" minlength="8" autocomplete="new-password" required />
+          <p class="form-help">At least 8 characters with letters and numbers.</p>
+          <label for="guide-auth-password-confirm">Confirm password</label>
+          <input id="guide-auth-password-confirm" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required />
           <label for="guide-auth-availability">Availability</label>
           <input id="guide-auth-availability" name="availability" placeholder="Weekends" required />
           <fieldset class="guide-interview-fields">
@@ -49,6 +52,10 @@
             <label for="guide-auth-interview-time">Preferred interview time</label>
             <input id="guide-auth-interview-time" name="interviewTime" type="time" required />
           </fieldset>
+          <label class="checkbox-row" for="guide-auth-terms">
+            <input id="guide-auth-terms" name="terms" type="checkbox" required />
+            <span>I have read and agree to the <a href="../web/legal.html#terms" target="_blank" rel="noopener">Terms of Use</a>, <a href="../web/legal.html#privacy" target="_blank" rel="noopener">Privacy Notice</a> and <a href="../web/legal.html#guide-conduct" target="_blank" rel="noopener">Guide Code of Conduct</a>, and I confirm the information above is true.</span>
+          </label>
           <button class="btn btn-primary" type="submit">Submit application</button>
           <p id="guide-auth-application-message" class="success-message" hidden></p>
         </form>

@@ -1,0 +1,79 @@
+.feature-grid,
+.portal-grid,
+.shop-grid,
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.section {
+  padding-top: 2.5rem;
+}
+
+.section-alt {
+  background: var(--surface-alt);
+  border-radius: 28px;
+  padding-bottom: 2rem;
+}
+
+.section-heading {
+  margin-bottom: 1rem;
+}
+
+.summary-panel,
+.summary-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.summary-pill {
+  padding: 0.7rem 0.85rem;
+  border-radius: 999px;
+  background: #f3f8ff;
+  color: var(--primary-dark);
+  font-weight: 600;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+}
+
+.hero-card {
+  padding: 1rem;
+}
+
+.hero-card-top {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.mock-map {
+  min-height: 220px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #d7f3f0 0%, #fef3c7 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.pin {
+  position: absolute;
+  font-size: 1.4rem;
+}
+
+.pin-one { top: 28%; left: 20%; }
+.pin-two { top: 48%; left: 55%; }
+.pin-three { top: 18%; left: 72%; }
+
+.mock-details {
+  padding: 1rem 0 0.25rem;
+}
+
+.footer {
+  color: var(--muted);
+}

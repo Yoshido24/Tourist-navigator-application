@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "scripts": {
+    "build:web": "node scripts/build-portal.mjs web",
+    "build:admin": "node scripts/build-portal.mjs admin",
+    "build:guide": "node scripts/build-portal.mjs guide",
+    "mobile:sync": "npm run build:guide && cap sync",
+    "mobile:android": "npm run mobile:sync && cap open android",
+    "mobile:ios": "npm run mobile:sync && cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  }
+}
