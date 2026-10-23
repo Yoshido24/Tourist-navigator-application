@@ -16,7 +16,7 @@
 
     bookingList.innerHTML = '';
     const assignedBookings = state.bookings
-      .filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status === 'Completed')
+      .filter((booking) => currentGuide && booking.guide_id === currentGuide && booking.status === 'Completed')
       .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
     if (!assignedBookings.length) {
       bookingList.innerHTML = '<p class="empty-state">No bookings assigned to you yet.</p>';

@@ -12,7 +12,7 @@ Scope: Supabase RLS and grants, the sign-up trigger, the Edge Functions, and the
 
 Suggested fix: a BEFORE UPDATE trigger on `bookings` that, for non-admin users, rejects any change outside `status`. A column-level grant would not work because admins use the same `authenticated` role.
 
-Status: open, not fixed.
+Status: fixed in `security-lockdown.sql` by the `restrict_guide_booking_update` trigger, which rejects any non-admin update that changes anything except `status`. Re-run that file in Supabase to apply it.
 
 ## No other issues found
 

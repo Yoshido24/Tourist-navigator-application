@@ -5,7 +5,7 @@
     if (!visitorList) return;
 
     visitorList.innerHTML = '';
-    state.bookings.filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status !== 'Completed').slice(0, 3).forEach((booking) => {
+    state.bookings.filter((booking) => currentGuide && booking.guide_id === currentGuide && booking.status !== 'Completed').slice(0, 3).forEach((booking) => {
       const card = document.createElement('article');
       card.className = 'dashboard-card';
       card.innerHTML = `

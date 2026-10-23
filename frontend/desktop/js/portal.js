@@ -60,9 +60,10 @@ function renderAdminPage(state) {
     attractionCount.textContent = state.attractions.length;
   }
 
+  const approvedGuideList = state.guides.filter((guide) => guide.status !== 'Pending');
   const guideCount = document.getElementById('stat-guides');
   if (guideCount) {
-    guideCount.textContent = state.guides.length;
+    guideCount.textContent = approvedGuideList.length;
   }
 
   const shopProductCount = document.getElementById('stat-shop-products');
@@ -73,7 +74,7 @@ function renderAdminPage(state) {
   const guideList = document.getElementById('admin-guides-list');
   if (guideList) {
     guideList.innerHTML = '';
-    state.guides.forEach((guide) => {
+    approvedGuideList.forEach((guide) => {
       const card = document.createElement('article');
       card.className = 'dashboard-card';
       card.innerHTML = `
@@ -81,8 +82,28 @@ function renderAdminPage(state) {
         <p><strong>Specialty:</strong> ${escapeHtml(guide.specialty)}</p>
         <p><strong>Contact:</strong> ${escapeHtml(guide.contact)}</p>
         <p><strong>Availability:</strong> ${escapeHtml(guide.availability)}</p>
-        <button class="btn btn-secondary" type="button" data-remove-guide>Remove guide</button>
+        <div data-guide-details hidden>
+          <p><strong>Guide ID:</strong> ${escapeHtml(guide.id)}</p>
+          <p><strong>Email:</strong> ${escapeHtml(guide.email || 'Not provided')}</p>
+          <p><strong>Address:</strong> ${escapeHtml(guide.address || 'Not provided')}</p>
+          <p><strong>Valid ID:</strong> ${escapeHtml(guide.idNumber || 'Not provided')}</p>
+          <p><strong>Experience:</strong> ${escapeHtml(guide.experience || 'Not provided')}</p>
+          <p><strong>Status:</strong> ${escapeHtml(guide.status || 'Approved')}</p>
+          <p><strong>Joined:</strong> ${escapeHtml(guide.created_at ? new Date(guide.created_at).toLocaleString() : 'Not recorded')}</p>
+          <p><strong>Assigned tours:</strong> ${state.bookings.filter((booking) => booking.guide_id === guide.id && booking.status !== 'Completed').length} upcoming, ${state.bookings.filter((booking) => booking.guide_id === guide.id && booking.status === 'Completed').length} completed</p>
+        </div>
+        <div class="attraction-management-actions">
+          <button class="btn btn-secondary" type="button" data-toggle-guide-details aria-expanded="false">View more</button>
+          <button class="btn btn-secondary" type="button" data-remove-guide>Remove guide</button>
+        </div>
       `;
+      const details = card.querySelector('[data-guide-details]');
+      const toggle = card.querySelector('[data-toggle-guide-details]');
+      toggle.addEventListener('click', () => {
+        details.hidden = !details.hidden;
+        toggle.textContent = details.hidden ? 'View more' : 'View less';
+        toggle.setAttribute('aria-expanded', String(!details.hidden));
+      });
       card.querySelector('[data-remove-guide]').addEventListener('click', async () => {
         if (!window.confirm(`Remove ${guide.name} as a guide?`)) return;
         await updateState((currentState) => ({
@@ -96,8 +117,7 @@ function renderAdminPage(state) {
 
   const applicationsList = document.getElementById('admin-guide-applications-list');
   if (applicationsList) {
-    const applications = state.guideApplications || [];
-    const pendingApplications = applications.filter((application) => (application.status || 'Pending') === 'Pending');
+    const pendingApplications = state.guides.filter((guide) => guide.status === 'Pending');
     applicationsList.innerHTML = pendingApplications.length
       ? ''
       : '<p class="empty-state">No pending guide applications.</p>';
@@ -125,23 +145,11 @@ function renderAdminPage(state) {
         if (!window.confirm(`Confirm that ${application.name} completed the interview at the Tourism Office, then approve this guide?`)) return;
         await updateState((currentState) => ({
           ...currentState,
-          guides: [{
-            id: application.id,
-            name: application.name,
-            specialty: application.specialty || '',
-            contact: application.contact || '',
-            address: application.address || '',
-            idNumber: application.idNumber || '',
-            experience: application.experience || '',
-            availability: application.availability || '',
-            email: application.email || '',
-            auth_user_id: application.auth_user_id || null
-          }, ...currentState.guides.filter((guide) => guide.id !== application.id)],
-          guideApplications: (currentState.guideApplications || []).map((item) => (
-            item.id === application.id ? { ...item, status: 'Approved' } : item
+          guides: currentState.guides.map((guide) => (
+            guide.id === application.id ? { ...guide, status: 'Approved' } : guide
           ))
         }));
-        if (window.lastSyncErrors?.guides || window.lastSyncErrors?.guideApplications) {
+        if (window.lastSyncErrors?.guides) {
           const warning = card.querySelector('.application-sync-warning');
           warning.textContent = 'Saved on this device only. It could not reach the shared database, so the guide may not be able to log in from another device yet.';
           warning.hidden = false;
@@ -151,7 +159,7 @@ function renderAdminPage(state) {
         if (!window.confirm(`Deny ${application.name}'s application?`)) return;
         await updateState((currentState) => ({
           ...currentState,
-          guideApplications: (currentState.guideApplications || []).filter((item) => item.id !== application.id)
+          guides: currentState.guides.filter((item) => item.id !== application.id)
         }));
       });
       applicationsList.appendChild(card);

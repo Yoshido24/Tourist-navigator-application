@@ -121,6 +121,9 @@
 
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (form.dataset.saving === 'true') return;
+      form.dataset.saving = 'true';
+      try {
       const formData = new FormData(form);
       const coords = [
         Number(formData.get('positionX') || 14.73),
@@ -130,7 +133,7 @@
       const existingAttraction = state.attractions.find((item) => item.id === editingId);
       const nextAttraction = {
         ...(existingAttraction || {}),
-        id: editingId || `attraction-${Date.now()}`,
+        id: editingId || `attraction-${window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`}`,
         name: formData.get('name') || 'New Attraction',
         category: formData.get('category') || 'Admin Added',
         fee: formData.get('fee') || '?0',
@@ -159,6 +162,12 @@
       populateForm(null);
       document.querySelector('[data-attraction-view="attraction-list-panel"]')?.click();
       document.getElementById('attraction-list-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (window.lastSyncErrors?.attractions) {
+        window.alert(`The attraction could not be saved to the database: ${window.lastSyncErrors.attractions.message || 'unknown error'}`);
+      }
+      } finally {
+        delete form.dataset.saving;
+      }
     });
 
     window.adminSelectAttraction = (attraction) => {

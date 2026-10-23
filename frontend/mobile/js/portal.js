@@ -28,13 +28,13 @@ let signedInGuideUserId = '';
 
 function renderGuidePage(state) {
   const approvedGuides = state.guides.filter((guide) => guide.status !== 'Pending' && guide.auth_user_id === signedInGuideUserId);
-  const currentGuide = approvedGuides[0]?.name || '';
+  const currentGuide = approvedGuides[0]?.id || '';
   const overview = document.getElementById('guide-overview-summary');
   if (overview) {
     const assignedBookings = state.bookings
-      .filter((booking) => currentGuide && booking.assignedGuide === currentGuide && ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))
+      .filter((booking) => currentGuide && booking.guide_id === currentGuide && ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))
       .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
-    const completedCount = state.bookings.filter((booking) => currentGuide && booking.assignedGuide === currentGuide && booking.status === 'Completed').length;
+    const completedCount = state.bookings.filter((booking) => currentGuide && booking.guide_id === currentGuide && booking.status === 'Completed').length;
     const nextTourName = document.getElementById('guide-next-tour-name');
     const nextTourDetails = document.getElementById('guide-next-tour-details');
     if (assignedBookings.length) {
@@ -52,7 +52,7 @@ function renderGuidePage(state) {
   const guideInfoList = document.getElementById('guide-info-list');
   if (guideInfoList) {
     guideInfoList.innerHTML = '';
-    approvedGuides.filter((guide) => !currentGuide || guide.name === currentGuide).forEach((guide) => {
+    approvedGuides.filter((guide) => !currentGuide || guide.id === currentGuide).forEach((guide) => {
       const card = document.createElement('article');
       card.className = 'dashboard-card';
       card.innerHTML = `
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupGuideMenu();
   setupGuideLogout();
   appState = await loadState();
-  if (!appState.guides.some((guide) => guide.auth_user_id === signedInGuideUserId)) {
+  if (!appState.guides.some((guide) => guide.auth_user_id === signedInGuideUserId && guide.status !== 'Pending')) {
     await supabaseClient.auth.signOut();
     window.location.replace('guide-login.html');
     return;

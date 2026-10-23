@@ -27,10 +27,10 @@ function setupGuideLoginForm() {
     // Only guides that Admin approved have a row in public.guides (RLS exposes just their own).
     const { data: guide } = await supabaseClient
       .from('guides')
-      .select('id')
+      .select('id, status')
       .eq('auth_user_id', data.user.id)
       .maybeSingle();
-    if (!guide) {
+    if (!guide || guide.status === 'Pending') {
       await supabaseClient.auth.signOut();
       showMessage('Your application is still pending Admin approval.');
       return;

@@ -5,7 +5,7 @@
     if (!scheduleList) return;
 
     const scheduledBookings = state.bookings
-      .filter((booking) => currentGuide && booking.assignedGuide === currentGuide && ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))
+      .filter((booking) => currentGuide && booking.guide_id === currentGuide && ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))
       .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
     scheduleList.innerHTML = '';
     if (!scheduledBookings.length) {

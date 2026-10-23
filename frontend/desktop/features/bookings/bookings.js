@@ -23,7 +23,7 @@
           <button class="btn btn-secondary" type="button" data-booking-action="approve">Approve</button>
           <select class="booking-form-input" data-guide-select aria-label="Select guide">
             <option value="">Select guide</option>
-            ${state.guides.filter((guide) => guide.status !== 'Pending').map((guide) => `<option value="${escapeHtml(guide.name)}">${escapeHtml(guide.name)}</option>`).join('')}
+            ${state.guides.filter((guide) => guide.status !== 'Pending').map((guide) => `<option value="${escapeHtml(guide.id)}">${escapeHtml(guide.name)}</option>`).join('')}
           </select>
           <button class="btn btn-primary" type="button" data-booking-action="assign" disabled>Assign guide</button>
         </div>
@@ -55,7 +55,7 @@
           ...currentState,
           bookings: currentState.bookings.map((item) => (
             item.id === booking.id
-              ? { ...item, status: 'Assigned', assignedGuide: selectedGuide }
+              ? { ...item, status: 'Assigned', ...guideAssignment(currentState, selectedGuide) }
               : item
           ))
         }));
@@ -74,10 +74,16 @@
 
   let pendingAssignment = null;
 
-  function openAssignGuideModal(booking, guideName) {
+  function guideAssignment(state, guideId) {
+    const guide = state.guides.find((item) => item.id === guideId);
+    return { guide_id: guideId, assignedGuide: guide?.name || '' };
+  }
+
+  function openAssignGuideModal(booking, guideId) {
     const modal = document.getElementById('assign-guide-modal');
     if (!modal) return;
-    pendingAssignment = { bookingId: booking.id, guideName };
+    const guideName = appState.guides.find((item) => item.id === guideId)?.name || 'the guide';
+    pendingAssignment = { bookingId: booking.id, guideId };
     const summary = document.getElementById('assign-guide-summary');
     if (summary) {
       summary.textContent = `Assign ${guideName} to ${booking.attractionName || 'this tour'} for ${escapeHtml(booking.travelerName || 'the traveler')} on ${booking.date || 'the scheduled date'}${booking.time ? ` at ${booking.time}` : ''}.`;
@@ -100,13 +106,13 @@
     modal.querySelector('[data-close-assign-guide]')?.addEventListener('click', closeAssignGuideModal);
     document.getElementById('confirm-assign-guide')?.addEventListener('click', async () => {
       if (!pendingAssignment) return;
-      const { bookingId, guideName } = pendingAssignment;
+      const { bookingId, guideId } = pendingAssignment;
       const note = document.getElementById('assign-guide-note')?.value || '';
       await updateState((currentState) => ({
         ...currentState,
         bookings: currentState.bookings.map((item) => (
           item.id === bookingId
-            ? { ...item, status: 'Assigned', assignedGuide: guideName, guideNote: note }
+            ? { ...item, status: 'Assigned', ...guideAssignment(currentState, guideId), guideNote: note }
             : item
         ))
       }));
@@ -142,7 +148,7 @@
         ${view === 'approved' ? `<div class="filter-row">
           <select class="booking-form-input" data-management-guide aria-label="Select guide">
             <option value="">Select guide</option>
-            ${state.guides.filter((guide) => guide.status !== 'Pending').map((guide) => `<option value="${escapeHtml(guide.name)}">${escapeHtml(guide.name)}</option>`).join('')}
+            ${state.guides.filter((guide) => guide.status !== 'Pending').map((guide) => `<option value="${escapeHtml(guide.id)}">${escapeHtml(guide.name)}</option>`).join('')}
           </select>
           <button class="btn btn-primary" type="button" data-management-assign disabled>Assign guide</button>
         </div>` : ''}
@@ -183,7 +189,7 @@
     renderManagementList(managementLists.new, sortByDateTime(state.bookings.filter((booking) => booking.status === 'Pending')), 'No new bookings.', 'new');
     renderManagementList(managementLists.approved, sortByDateTime(state.bookings.filter((booking) => booking.status === 'Approved')), 'No approved bookings.', 'approved');
     renderManagementList(managementLists.pending, sortByDateTime(state.bookings.filter((booking) => ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))), 'No tours pending completion.', 'pending');
-    renderManagementList(managementLists.completed, sortByDateTime(state.bookings.filter((booking) => booking.status === 'Completed')), 'No completed bookings.', 'completed');
+    renderManagementList(managementLists.completed, sortByDateTime(state.bookings).reverse(), 'No bookings yet.', 'completed');
   }
 
   window.AdminBookingsFeature = {

@@ -151,11 +151,10 @@ async function loadStateFromSupabase() {
   const role = getSessionRole(await getAuthSession());
   // Row Level Security hides these tables from anon visitors, so only ask for what the role may read.
   const empty = Promise.resolve([]);
-  const [attractions, bookings, guides, guideApplications, shopProducts] = await Promise.all([
+  const [attractions, bookings, guides, shopProducts] = await Promise.all([
     fetchSupabaseTable(STORE_NAMES.attractions),
     role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.bookings),
     role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.guides),
-    role === 'admin' ? fetchOptionalSupabaseTable(STORE_NAMES.guideApplications) : empty,
     fetchOptionalSupabaseTable(STORE_NAMES.shopProducts)
   ]);
   const cachedShopProducts = readLocalShopProducts();
@@ -172,7 +171,6 @@ async function loadStateFromSupabase() {
     attractions: mergedAttractions.length ? mergedAttractions : (localAttractions.length ? localAttractions : defaultState.attractions),
     bookings: bookings.map(normalizeBooking),
     guides: guides.length ? guides : defaultState.guides,
-    guideApplications,
     shopProducts: shopProducts.length ? shopProducts : (cachedShopProducts.length ? cachedShopProducts : defaultState.shopProducts)
   };
 }
@@ -203,7 +201,7 @@ async function persistStateToSupabase(state) {
 
   writeLocalAttractions(state.attractions || []);
   writeLocalShopProducts(state.shopProducts || []);
-  const [attractionsResult, bookingsResult, guidesResult, guideApplicationsResult, shopProductsResult] = await Promise.all([
+  const [attractionsResult, bookingsResult, guidesResult, shopProductsResult] = await Promise.all([
     changed('attractions') ? persistSupabaseCollection(STORE_NAMES.attractions, state.attractions, {
       retryWithout: ['transportOptions']
     }) : { error: null },
@@ -211,11 +209,8 @@ async function persistStateToSupabase(state) {
       retryWithout: ['time', 'meetingPoint', 'scheduleNotes', 'contact', 'adults', 'kids', 'pwd', 'guideNote', 'created_at']
     }) : { error: null },
     changed('guides') ? persistSupabaseCollection(STORE_NAMES.guides, state.guides, {
-      retryWithout: ['email', 'address', 'idNumber', 'experience']
-    }) : { error: null },
-    changed('guideApplications') ? persistSupabaseCollection(STORE_NAMES.guideApplications, state.guideApplications || [], {
       retryWithout: ['email', 'address', 'idNumber', 'experience', 'interviewDate', 'interviewTime', 'interviewLocation']
-    }).catch((error) => ({ error })) : { error: null },
+    }) : { error: null },
     changed('shopProducts') ? persistSupabaseCollection(STORE_NAMES.shopProducts, state.shopProducts || []).catch((error) => ({
       error
     })) : { error: null }
@@ -227,15 +222,14 @@ async function persistStateToSupabase(state) {
   if (shopProductsResult.error) {
     console.warn('Optional shop product save failed. Run the shop_products migration to enable it.', shopProductsResult.error);
   }
-  if (guideApplicationsResult.error) {
-    console.warn('Guide application save failed. Run the guide_applications migration and check Supabase permissions.', guideApplicationsResult.error);
+  if (guidesResult.error) {
+    console.warn('Guide save failed. Run the latest database migration and check Supabase permissions.', guidesResult.error);
   }
   // Let callers (e.g. the guide sign-up form) know whether the shared save actually reached Supabase.
   window.lastSyncErrors = {
     attractions: attractionsResult.error || null,
     bookings: bookingsResult.error || null,
     guides: guidesResult.error || null,
-    guideApplications: guideApplicationsResult.error || null,
     shopProducts: shopProductsResult.error || null
   };
   if (attractionsResult.error || bookingsResult.error || guidesResult.error) {
@@ -286,7 +280,8 @@ function withCreatedAt(items) {
   const timestamp = new Date().toISOString();
   return items.map((item) => ({
     ...item,
-    created_at: item.created_at || timestamp
+    created_at: item.created_at || timestamp,
+    updated_at: timestamp
   }));
 }
 
