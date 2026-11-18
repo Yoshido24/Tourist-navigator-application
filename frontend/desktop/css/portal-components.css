@@ -1131,3 +1131,40 @@ img {
     grid-template-columns: 1fr;
   }
 }
+
+.dashboard-grid:has(> .dashboard-card > .attraction-form) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.attraction-form {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.attraction-form > * {
+  grid-column: 1 / -1;
+}
+
+.attraction-form > .form-field:not(.wide) {
+  grid-column: auto;
+}
+
+.attraction-form .form-field {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+}
+
+.attraction-form > .btn {
+  justify-self: start;
+}
+
+@media (max-width: 720px) {
+  .attraction-form > .form-field:not(.wide) {
+    grid-column: 1 / -1;
+  }
+}

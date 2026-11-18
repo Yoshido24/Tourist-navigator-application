@@ -62,30 +62,19 @@
         <div class="dashboard-grid">
           <article class="dashboard-card">
             <h3 id="local-attraction-heading">Propose an attraction</h3>
-            <form id="local-attraction-form" class="booking-form">
+            <form id="local-attraction-form" class="booking-form attraction-form">
               <input id="local-attraction-id" type="hidden" />
-              <label for="attraction-area">Barangay</label>
-              <select id="attraction-area" required></select>
-              <label for="local-attraction-name">Name</label>
-              <input id="local-attraction-name" required maxlength="120" />
-              <label for="local-attraction-category">Category</label>
-              <select id="local-attraction-category" required></select>
-              <label for="local-attraction-fee">Fee</label>
-              <input id="local-attraction-fee" placeholder="₱50" required />
-              <label for="local-attraction-duration">Duration</label>
-              <input id="local-attraction-duration" placeholder="2-3 hours" required />
-              <label for="local-attraction-description">What is there?</label>
-              <textarea id="local-attraction-description" rows="3" required></textarea>
-              <label for="local-attraction-trail">Trail or route details</label>
-              <textarea id="local-attraction-trail" rows="2"></textarea>
-              <label for="local-attraction-expectations">What visitors should expect</label>
-              <textarea id="local-attraction-expectations" rows="2"></textarea>
-              <label for="local-attraction-terrain">Terrain and accessibility</label>
-              <input id="local-attraction-terrain" />
-              <label for="local-attraction-startPoint">Starting point</label>
-              <input id="local-attraction-startPoint" />
-              <label for="local-attraction-images">Image URLs (one per line)</label>
-              <textarea id="local-attraction-images" rows="3"></textarea>
+              <div class="form-field"><label for="attraction-area">Barangay</label><select id="attraction-area" required></select></div>
+              <div class="form-field"><label for="local-attraction-name">Name</label><input id="local-attraction-name" required maxlength="120" /></div>
+              <div class="form-field"><label for="local-attraction-category">Category</label><select id="local-attraction-category" required></select></div>
+              <div class="form-field"><label for="local-attraction-fee">Fee</label><input id="local-attraction-fee" placeholder="₱50" required /></div>
+              <div class="form-field"><label for="local-attraction-duration">Duration</label><input id="local-attraction-duration" placeholder="2-3 hours" required /></div>
+              <div class="form-field wide"><label for="local-attraction-description">What is there?</label><textarea id="local-attraction-description" rows="3" required></textarea></div>
+              <div class="form-field wide"><label for="local-attraction-trail">Trail or route details</label><textarea id="local-attraction-trail" rows="2"></textarea></div>
+              <div class="form-field wide"><label for="local-attraction-expectations">What visitors should expect</label><textarea id="local-attraction-expectations" rows="2"></textarea></div>
+              <div class="form-field"><label for="local-attraction-terrain">Terrain and accessibility</label><input id="local-attraction-terrain" /></div>
+              <div class="form-field"><label for="local-attraction-startPoint">Starting point</label><input id="local-attraction-startPoint" /></div>
+              <div class="form-field wide"><label for="local-attraction-images">Image URLs (one per line)</label><textarea id="local-attraction-images" rows="3"></textarea></div>
               <fieldset class="transport-editor">
                 <legend>Public transport and fare</legend>
                 <div id="local-transport-options"></div>
