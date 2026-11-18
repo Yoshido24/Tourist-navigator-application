@@ -1,13 +1,17 @@
 // Tourist attraction discovery: list, detail panel, and Book form sync
 (function () {
   let activeCategory = 'all';
+  let currentState;
 
   function filterAttractionsByCategory(attractions, category) {
-    if (category === 'all') return attractions;
-    return attractions.filter((attraction) => String(attraction.category || '').trim().toLowerCase() === category);
+    const selectedCategory = String(category || 'all').trim().toLowerCase();
+    if (selectedCategory === 'all') return attractions;
+    return attractions.filter((attraction) => String(attraction.category || '').trim().toLowerCase() === selectedCategory);
   }
 
   function renderAttractionsFeature(state) {
+    currentState = state;
+    const attractions = state.attractions || [];
     const attractionsList = document.getElementById('attraction-selector');
     const selectedName = document.getElementById('selected-attraction-name');
     const selectedDescription = document.getElementById('selected-attraction-description');
@@ -17,52 +21,72 @@
     const selectedTrail = document.getElementById('selected-attraction-trail');
     const gallery = document.getElementById('attraction-gallery');
     const placeSelect = document.getElementById('place');
+    const renderList = () => {
+      if (!attractionsList) return;
+      attractionsList.innerHTML = '';
+      const visibleAttractions = filterAttractionsByCategory(attractions, activeCategory);
+      visibleAttractions.forEach((attraction) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'attraction-option';
+        button.innerHTML = `
+          <span>${escapeHtml(attraction.name)}</span>
+          <strong>${escapeHtml(attraction.fee || '')}</strong>
+        `;
+        button.addEventListener('click', () => selectAttraction(attraction));
+        attractionsList.appendChild(button);
+      });
+      if (!visibleAttractions.length) {
+        attractionsList.innerHTML = activeCategory === 'resort'
+          ? '<p class="empty-state">Resorts are available in the Resorts tab.</p>'
+          : '<p class="empty-state">No attractions in this category yet.</p>';
+      }
+    };
+
+    const categories = [
+      { value: 'all', label: 'All' },
+      ...(window.ATTRACTION_CATEGORIES || []).map((category) => ({ value: category.trim().toLowerCase(), label: category })),
+      { value: 'resort', label: 'Resort' }
+    ];
+    const knownCategories = new Set(categories.map((category) => category.value));
+    attractions.forEach((attraction) => {
+      const label = String(attraction.category || '').trim();
+      const value = label.toLowerCase();
+      if (value && !knownCategories.has(value)) {
+        knownCategories.add(value);
+        categories.push({ value, label });
+      }
+    });
+    const categoryFilters = Array.from(document.querySelectorAll('[data-attraction-category]'));
+    if (!categories.some((category) => category.value === activeCategory)) activeCategory = 'all';
+    categoryFilters.forEach((filter) => {
+      filter.innerHTML = categories.map((category) =>
+        `<option value="${escapeHtml(category.value)}">${escapeHtml(category.label)}</option>`
+      ).join('');
+      filter.value = activeCategory;
+      if (filter.dataset.categoryFilterBound === 'true') return;
+      filter.dataset.categoryFilterBound = 'true';
+      filter.addEventListener('change', () => {
+        activeCategory = filter.value;
+        renderAttractionsFeature(currentState);
+        window.UserMapFeature?.render(currentState);
+      });
+    });
 
     if (attractionsList) {
-      const renderList = () => {
-        attractionsList.innerHTML = '';
-        const visibleAttractions = filterAttractionsByCategory(state.attractions, activeCategory);
-        visibleAttractions.forEach((attraction) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'attraction-option';
-          button.innerHTML = `
-            <span>${escapeHtml(attraction.name)}</span>
-            <strong>${escapeHtml(attraction.fee || '')}</strong>
-          `;
-          button.addEventListener('click', () => selectAttraction(attraction));
-          attractionsList.appendChild(button);
-        });
-        if (!visibleAttractions.length) {
-          attractionsList.innerHTML = '<p class="empty-state">No attractions in this category yet.</p>';
-        }
-      };
       renderList();
-      document.querySelectorAll('[data-attraction-category]').forEach((filter) => {
-        if (filter.dataset.categoryFilterBound === 'true') return;
-        filter.dataset.categoryFilterBound = 'true';
-        filter.addEventListener('click', () => {
-          activeCategory = filter.dataset.attractionCategory;
-          document.querySelectorAll('[data-attraction-category]').forEach((item) => {
-            const active = item === filter;
-            item.classList.toggle('is-active', active);
-            item.setAttribute('aria-pressed', String(active));
-          });
-          renderList();
-        });
-      });
     }
 
     if (placeSelect) {
       const previousSelection = selectedUserAttractionId || placeSelect.value;
       placeSelect.innerHTML = '';
-      state.attractions.forEach((attraction) => {
+      attractions.forEach((attraction) => {
         const option = document.createElement('option');
         option.value = attraction.id;
         option.textContent = attraction.name;
         placeSelect.appendChild(option);
       });
-      placeSelect.value = state.attractions.some((item) => item.id === previousSelection)
+      placeSelect.value = attractions.some((item) => item.id === previousSelection)
         ? previousSelection
         : '';
       if (placeSelect.dataset.attractionSyncBound !== 'true') {
@@ -83,7 +107,7 @@
     if (gallery) gallery.innerHTML = '';
     window.UserDirectionsFeature?.reset();
 
-    const preservedAttraction = state.attractions.find((item) => item.id === selectedUserAttractionId);
+    const preservedAttraction = attractions.find((item) => item.id === selectedUserAttractionId);
     if (preservedAttraction) {
       selectAttraction(preservedAttraction);
     }
@@ -146,6 +170,7 @@
   window.UserAttractionsFeature = {
     render: renderAttractionsFeature,
     select: null,
-    filterByCategory: filterAttractionsByCategory
+    filterByCategory: filterAttractionsByCategory,
+    getActiveCategory: () => activeCategory
   };
 })();

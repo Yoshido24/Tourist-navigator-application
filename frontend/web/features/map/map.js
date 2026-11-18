@@ -57,24 +57,74 @@
     return popup;
   }
 
+  function getValidResortCoords(resort) {
+    let coords = resort.coords;
+    if (typeof coords === 'string') {
+      try { coords = JSON.parse(coords); } catch { return null; }
+    }
+    if (!Array.isArray(coords) || coords.length !== 2
+        || typeof coords[0] !== 'number' || typeof coords[1] !== 'number'
+        || !Number.isFinite(coords[0]) || !Number.isFinite(coords[1])
+        || Math.abs(coords[0]) > 90 || Math.abs(coords[1]) > 180) return null;
+    return coords;
+  }
+
+  function resortServices(resort) {
+    return (Array.isArray(resort.services) ? resort.services : []).map((service) =>
+      `<li>${escapeHtml(service.name)} — ₱${Number(service.fee).toLocaleString('en-PH')} / ${escapeHtml(service.pricingUnit)}</li>`
+    ).join('');
+  }
+
+  function createResortPopup(resort) {
+    const popup = document.createElement('div');
+    popup.className = 'map-popup';
+    popup.innerHTML = `
+      <h3>${escapeHtml(resort.name)}</h3>
+      <p>${escapeHtml(resort.address || 'Approved resort listing')}</p>
+      <ul>${resortServices(resort) || '<li>No services are currently listed.</li>'}</ul>
+    `;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-primary';
+    button.textContent = 'Choose services';
+    button.addEventListener('click', () => window.UserResortsFeature?.select?.(resort.id));
+    popup.appendChild(button);
+    return popup;
+  }
+
   function renderMapFeature(state) {
     const mapElement = document.getElementById('tourist-map');
     const detailsElement = document.getElementById('tourist-map-details');
     if (!mapElement || typeof window.L === 'undefined') return;
+    const allAttractions = state.attractions || [];
+    const activeCategory = window.UserAttractionsFeature?.getActiveCategory?.() || 'all';
+    const attractions = window.UserAttractionsFeature?.filterByCategory
+      ? window.UserAttractionsFeature.filterByCategory(allAttractions, activeCategory)
+      : allAttractions;
+    const resorts = activeCategory === 'resort'
+      ? (state.resorts || []).map((resort) => ({ resort, coords: getValidResortCoords(resort) }))
+        .filter((entry) => entry.coords)
+      : [];
     if (touristMapInstance) {
       touristMapInstance.remove();
       touristMapInstance = null;
     }
     mapElement.innerHTML = '';
-    if (!state.attractions.length) {
+    if (!allAttractions.length && activeCategory !== 'resort') {
       if (detailsElement) detailsElement.innerHTML = '<p>No attractions have been published yet. Please check back soon.</p>';
+      return;
+    }
+    if (activeCategory === 'resort' && !resorts.length) {
+      if (detailsElement) detailsElement.innerHTML = '<p>No approved resorts with map locations are available yet.</p>';
       return;
     }
     if (detailsElement) {
       detailsElement.innerHTML = '<p class="map-loading">Loading attraction pins. Select a pin when the map is ready.</p>';
     }
 
-    const firstCoords = getAttractionCoords(state.attractions[0]);
+    const firstCoords = attractions.length
+      ? getAttractionCoords(attractions[0])
+      : resorts[0]?.coords || getAttractionCoords(allAttractions[0]);
     const mapCanvas = document.createElement('div');
     mapCanvas.className = 'leaflet-map';
     mapCanvas.id = 'tourist-map-canvas';
@@ -88,7 +138,7 @@
 
     const bounds = [];
     const markers = [];
-    state.attractions.forEach((attraction) => {
+    attractions.forEach((attraction) => {
       const coords = getAttractionCoords(attraction);
       bounds.push(coords);
       const marker = window.L.marker(coords).addTo(map);
@@ -97,12 +147,20 @@
       marker.on('click', () => selectAttraction(attraction, marker));
       markers.push(marker);
     });
+    resorts.forEach(({ resort, coords }) => {
+      bounds.push(coords);
+      const marker = window.L.marker(coords).addTo(map);
+      marker.bindTooltip(resort.name);
+      marker.bindPopup(createResortPopup(resort), { maxWidth: 340 });
+      marker.on('click', () => selectResort(resort, marker));
+      markers.push(marker);
+    });
     if (bounds.length > 1) map.fitBounds(bounds, { padding: [30, 30] });
 
     const pinPanel = document.createElement('div');
     pinPanel.className = 'map-pin-panel';
-    pinPanel.innerHTML = '<strong class="map-pin-panel-title">All attraction pins</strong>';
-    state.attractions.forEach((attraction, index) => {
+    pinPanel.innerHTML = `<strong class="map-pin-panel-title">${activeCategory === 'resort' ? 'Approved resort pins' : activeCategory === 'all' ? 'All attraction pins' : `${escapeHtml(activeCategory)} attraction pins`}</strong>`;
+    attractions.forEach((attraction, index) => {
       const pin = document.createElement('button');
       pin.type = 'button';
       pin.className = 'map-pin-button';
@@ -111,9 +169,22 @@
       pin.addEventListener('click', () => selectAttraction(attraction, markers[index]));
       pinPanel.appendChild(pin);
     });
+    resorts.forEach(({ resort }, index) => {
+      const pin = document.createElement('button');
+      pin.type = 'button';
+      pin.className = 'map-pin-button';
+      pin.setAttribute('aria-label', `Show ${resort.name} on the map`);
+      pin.innerHTML = `<span class="map-pin-icon" aria-hidden="true">📍</span><span>${escapeHtml(resort.name)}</span>`;
+      pin.addEventListener('click', () => selectResort(resort, markers[index]));
+      pinPanel.appendChild(pin);
+    });
     mapElement.appendChild(pinPanel);
     if (detailsElement) {
-      detailsElement.innerHTML = '<p>Select an attraction pin to view its details.</p>';
+      detailsElement.innerHTML = resorts.length
+        ? '<p>Select an approved resort pin to view its services and fees.</p>'
+        : attractions.length
+        ? '<p>Select an attraction pin to view its details.</p>'
+        : '<p>No attractions in this category yet.</p>';
     }
 
     function selectAttraction(attraction, marker = null) {
@@ -142,6 +213,28 @@
         });
       }
       window.UserAttractionsFeature?.select?.(attraction);
+    }
+
+    function selectResort(resort, marker = null) {
+      const coords = getValidResortCoords(resort);
+      if (!coords) return;
+      map.setView(coords, 16);
+      marker?.openPopup();
+      mapElement.querySelectorAll('.map-pin-button').forEach((button) => {
+        button.classList.toggle('active', button.textContent.includes(resort.name));
+      });
+      if (detailsElement) {
+        detailsElement.innerHTML = `
+          <h3>${escapeHtml(resort.name)}</h3>
+          <p>${escapeHtml(resort.description || 'Contact the resort for details.')}</p>
+          <h4>Services and fees</h4>
+          <ul>${resortServices(resort) || '<li>No services are currently listed.</li>'}</ul>
+          <button class="btn btn-primary map-select-resort" type="button">Continue to resort booking</button>
+        `;
+        detailsElement.querySelector('.map-select-resort')?.addEventListener('click', () => {
+          window.UserResortsFeature?.select?.(resort.id);
+        });
+      }
     }
   }
 

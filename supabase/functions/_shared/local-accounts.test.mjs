@@ -47,7 +47,7 @@ function request(body, token = 'caller-token') {
 }
 
 // A tiny in-memory Supabase: records every call so tests can assert what was (not) written.
-function createBackend({ callerRole = 'municipal_super_admin', assigned = [], barangays = ['b1', 'b2'], failSubmission = false } = {}) {
+function createBackend({ callerRole = 'municipal_super_admin', assigned = [], barangays = ['b1', 'b2'], failSubmission = false, signupResponse = null } = {}) {
   const calls = [];
   const fetchImpl = async (input, init = {}) => {
     const url = new URL(input);
@@ -69,10 +69,8 @@ function createBackend({ callerRole = 'municipal_super_admin', assigned = [], ba
       return jsonResponse(assigned.filter((id) => requested.includes(id)).map((barangay_id) => ({ barangay_id })));
     }
     if (url.pathname === '/auth/v1/admin/users' && method === 'POST') {
-      return jsonResponse({ id: 'new-admin-id' });
-    }
-    if (url.pathname === '/auth/v1/signup') {
-      return jsonResponse({ id: 'new-manager-id', identities: [{ id: 'identity-id' }] });
+      if (signupResponse && body.user_metadata?.account_type === 'resort_manager') return signupResponse;
+      return jsonResponse({ id: body.user_metadata?.account_type === 'resort_manager' ? 'new-manager-id' : 'new-admin-id' });
     }
     if (url.pathname.startsWith('/auth/v1/admin/users/') && method === 'DELETE') {
       return jsonResponse({});
@@ -100,19 +98,40 @@ test('allows public registration while the handler checks staff authorization', 
   assert.match(config, /\[functions\.local-accounts\]\s*verify_jwt\s*=\s*false/);
 });
 
-test('does not alter or delete an existing account returned by signup', async () => {
-  const backend = createBackend();
-  const fetchImpl = async (input, init = {}) => {
-    if (new URL(input).pathname === '/auth/v1/signup') {
-      return jsonResponse({ id: 'existing-id', identities: [] });
-    }
-    return backend.fetchImpl(input, init);
-  };
-  const response = await (await createHandler(fetchImpl))(request(registerBody, null));
+test('does not alter or delete an existing account when Auth reports a duplicate', async () => {
+  const backend = createBackend({
+    signupResponse: jsonResponse({ code: 'email_exists', message: 'A user with this email address has already been registered' }, 422)
+  });
+  const response = await (await createHandler(backend.fetchImpl))(request(registerBody, null));
   assert.equal(response.status, 400);
   assert.equal(backend.find('POST', '/rest/v1/resort_managers').length, 0);
   assert.equal(backend.find('POST', '/rest/v1/resort_manager_applications').length, 0);
-  assert.equal(backend.find('DELETE', '/auth/v1/admin/users/existing-id').length, 0);
+  assert.equal(backend.calls.filter((c) => c.method === 'DELETE').length, 0);
+});
+
+test('reports non-duplicate signup failures as a temporary service error', async () => {
+  const backend = createBackend({
+    signupResponse: jsonResponse({ code: 'over_email_send_rate_limit', message: 'Please wait before requesting another email.' }, 429)
+  });
+  const response = await (await createHandler(backend.fetchImpl))(request(registerBody, null));
+  const payload = await response.json();
+
+  assert.equal(response.status, 502);
+  assert.match(payload.error, /temporarily unavailable/i);
+  assert.doesNotMatch(payload.error, /email may already be registered/i);
+  assert.equal(backend.find('POST', '/rest/v1/resort_manager_applications').length, 0);
+});
+
+test('keeps duplicate Auth errors on the duplicate-safe signup path', async () => {
+  const backend = createBackend({
+    signupResponse: jsonResponse({ code: 'email_exists', message: 'User already registered' }, 422)
+  });
+  const response = await (await createHandler(backend.fetchImpl))(request(registerBody, null));
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.match(payload.error, /email may already be registered/i);
+  assert.equal(backend.find('POST', '/rest/v1/resort_manager_applications').length, 0);
 });
 
 test('rejects staff provisioning from callers that are not Municipal Super Admins', async () => {
@@ -202,8 +221,9 @@ test('self-registration creates a pending owner application but grants no access
   const response = await (await createHandler(backend.fetchImpl))(request(hostile, null));
   assert.equal(response.status, 200);
 
-  const [signup] = backend.find('POST', '/auth/v1/signup');
-  assert.equal(signup.body.data.account_type, 'resort_manager');
+  const [signup] = backend.find('POST', '/auth/v1/admin/users');
+  assert.equal(signup.body.user_metadata.account_type, 'resort_manager');
+  assert.equal(signup.body.email_confirm, true);
   assert.ok(!JSON.stringify(signup.body).includes('municipal_super_admin'));
   assert.ok(!('app_metadata' in signup.body));
 
@@ -235,7 +255,7 @@ test('requires services to be added after account approval', async () => {
   ] } };
   const response = await (await createHandler(backend.fetchImpl))(request(body, null));
   assert.equal(response.status, 400);
-  assert.equal(backend.find('POST', '/auth/v1/signup').length, 0);
+  assert.equal(backend.find('POST', '/auth/v1/admin/users').length, 0);
 });
 
 test('rejects invalid resort-manager registration without creating records', async () => {
@@ -253,7 +273,7 @@ test('rejects invalid resort-manager registration without creating records', asy
     const backend = createBackend();
     const response = await (await createHandler(backend.fetchImpl))(request(body, null));
     assert.equal(response.status, 400);
-    assert.equal(backend.find('POST', '/auth/v1/signup').length, 0);
+    assert.equal(backend.find('POST', '/auth/v1/admin/users').length, 0);
     assert.equal(backend.find('POST', '/rest/v1/resort_managers').length, 0);
   }
 });

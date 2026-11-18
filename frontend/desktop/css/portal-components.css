@@ -157,6 +157,26 @@ img {
   display: none;
 }
 
+.local-admin-menu {
+  width: 100%;
+}
+
+.local-admin-menu summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.local-admin-menu summary::after {
+  content: " \25BE";
+}
+
+.local-admin-menu .admin-tab {
+  display: block;
+  width: 100%;
+  padding-left: 1.5rem;
+  text-align: left;
+}
+
 .guide-tab {
   appearance: none;
   border: 1px solid transparent;
@@ -1067,6 +1087,24 @@ img {
 .resort-manager-portal [hidden],
 .barangay-admin-portal [hidden] {
   display: none !important;
+}
+
+.barangay-portal-links {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.barangay-portal-links a {
+  color: var(--primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.barangay-tabs .admin-tab {
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 
 .resort-service-row {

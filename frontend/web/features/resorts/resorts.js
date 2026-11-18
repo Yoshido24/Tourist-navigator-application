@@ -1,6 +1,7 @@
 // Approved resort listings and service requests for the public tourist portal.
 (function () {
   let currentResort = null;
+  let currentState = { resorts: [] };
 
   function formatFee(fee, pricingUnit) {
     return `₱${Number(fee).toLocaleString('en-PH')} / ${escapeHtml(pricingUnit)}`;
@@ -34,10 +35,18 @@
 
     list.querySelectorAll('[data-select-resort]').forEach((button) => {
       button.addEventListener('click', () => {
-        currentResort = resorts.find((resort) => resort.id === button.dataset.selectResort);
-        if (currentResort) showResortDetails(currentResort);
+        selectResort(button.dataset.selectResort);
       });
     });
+  }
+
+  function selectResort(resortId) {
+    const resort = (currentState.resorts || []).find((item) => item.id === resortId);
+    if (!resort) return false;
+    currentResort = resort;
+    showResortDetails(resort);
+    if (typeof showUserTab === 'function') showUserTab('user-resorts');
+    return true;
   }
 
   function showResortDetails(resort) {
@@ -151,6 +160,7 @@
 
   window.UserResortsFeature = {
     render(state) {
+      currentState = state;
       setupBookingForm();
       renderResorts(state);
       if (currentResort) {
@@ -160,9 +170,11 @@
           showResortDetails(resort);
         } else {
           currentResort = null;
-          document.getElementById('resort-detail').hidden = true;
+          const detail = document.getElementById('resort-detail');
+          if (detail) detail.hidden = true;
         }
       }
-    }
+    },
+    select: selectResort
   };
 })();

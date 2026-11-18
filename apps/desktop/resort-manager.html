@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <link rel="stylesheet" href="../../frontend/desktop/css/portal.css" />
   </head>
   <body class="resort-manager-portal">
@@ -63,6 +64,9 @@
             <input id="owner-listing-address" name="address" maxlength="240" />
             <label for="owner-listing-description">Description</label>
             <textarea id="owner-listing-description" name="description" rows="3" maxlength="2000"></textarea>
+            <label>Map location</label>
+            <button id="owner-choose-location" class="btn btn-secondary" type="button">Choose resort location on map</button>
+            <p id="owner-pin-status" class="pin-confirmed-message">Choose the resort location on the map.</p>
             <h3>Services and fees</h3>
             <div id="owner-service-rows"></div>
             <button class="btn btn-secondary" type="button" data-add-service="owner-service-rows">Add another service</button>
@@ -71,6 +75,18 @@
             <p id="owner-listing-error" class="success-message error-message" role="alert" hidden></p>
           </form>
         </article>
+        <div id="owner-pin-modal" class="modal-backdrop" hidden>
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="owner-pin-title">
+            <div class="modal-heading">
+              <div><p class="eyebrow">Resort location</p><h3 id="owner-pin-title">Choose the exact resort pin</h3></div>
+              <button id="owner-cancel-location" class="btn btn-secondary" type="button">Cancel</button>
+            </div>
+            <p class="map-caption">Click the map at your resort's location, then confirm the pin.</p>
+            <div id="owner-pin-map" class="leaflet-map" aria-label="Resort location map"></div>
+            <p class="pin-picker-status" id="owner-pin-picker-status">No location selected yet.</p>
+            <button id="owner-confirm-location" class="btn btn-primary" type="button" disabled>Confirm resort location</button>
+          </div>
+        </div>
         <div class="section-heading">
           <h2>Incoming booking requests</h2>
           <p>Confirm availability yourself; payment and live room availability are not handled here.</p>
@@ -81,6 +97,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="../../frontend/shared/js/navigation.js"></script>
     <script src="../../frontend/desktop/js/resort-manager.js"></script>
   </body>

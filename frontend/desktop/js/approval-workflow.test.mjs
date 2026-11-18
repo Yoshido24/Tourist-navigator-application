@@ -17,7 +17,7 @@ test('barangay attraction submission stays pending and preserves its selected ar
   };
   Object.entries({
     'attraction-area': 'area', 'local-attraction-name': 'Falls',
-    'local-attraction-category': 'Nature', 'local-attraction-description': 'A waterfall',
+    'local-attraction-category': 'Adventure', 'local-attraction-description': 'A waterfall',
     'local-attraction-trail': 'Easy trail', 'local-attraction-images': 'https://example.test/falls.jpg'
   }).forEach(([id, value]) => { element(id).value = value; });
   let inserted;
@@ -47,6 +47,7 @@ test('barangay attraction submission stays pending and preserves its selected ar
     supabaseClient, escapeHtml: (v) => String(v), CSS: { escape: (v) => v },
     window: {
       AdminTransportFeature: { addRow() {}, loadOptions() {}, readOptions: () => [] },
+      ATTRACTION_CATEGORIES: ['Adventure', 'Hiking', 'Camping', 'Historical', 'Falls'],
       setTimeout: (callback) => callback(),
       L: {
         map: () => map, tileLayer: () => ({ addTo() {} }),
@@ -70,6 +71,10 @@ test('barangay attraction submission stays pending and preserves its selected ar
   assert.equal(inserted.table, 'attraction_submissions');
   assert.equal(inserted.value.barangay_id, 'area');
   assert.equal(inserted.value.payload.name, 'Falls');
+  assert.equal(inserted.value.payload.category, 'Adventure');
+  for (const value of ['Adventure', 'Hiking', 'Camping', 'Historical', 'Falls']) {
+    assert.match(element('local-attraction-category').innerHTML, new RegExp(value));
+  }
   assert.deepEqual(Array.from(inserted.value.payload.coords), [14.73, 121.15]);
   assert.equal(inserted.value.payload.trail, 'Easy trail');
   assert.deepEqual(Array.from(inserted.value.payload.images), ['https://example.test/falls.jpg']);
@@ -121,6 +126,14 @@ test('municipal approval sends the selected pending attraction to the review fun
   assert.equal(refreshed, true);
 });
 
+test('shared attraction categories match the admin category choices', () => {
+  const categories = vm.runInNewContext(
+    `${readFileSync(new URL('../../shared/js/state.js', import.meta.url), 'utf8')}\nwindow.ATTRACTION_CATEGORIES`,
+    { window: {}, console }
+  );
+  assert.deepEqual(Array.from(categories), ['Adventure', 'Hiking', 'Camping', 'Historical', 'Falls']);
+});
+
 test('barangay admin creation shows why the account could not be created', async () => {
   const handlers = {};
   const elements = new Map();
@@ -150,7 +163,7 @@ test('barangay admin creation shows why the account could not be created', async
   };
   const getFunctionErrorMessage = vm.runInNewContext(
     `${readFileSync(new URL('../../shared/js/state.js', import.meta.url), 'utf8')}\ngetFunctionErrorMessage`,
-    { console }
+    { window: {}, console }
   );
   const context = vm.createContext({ document: { getElementById: element }, window: {}, supabaseClient: client, escapeHtml: String, getFunctionErrorMessage });
   vm.runInContext(readFileSync(new URL('../features/local-admin/local-admin.js', import.meta.url), 'utf8'), context);

@@ -12,6 +12,7 @@ const STORE_NAMES = {
 };
 const SHOP_CACHE_KEY = 'montalban-navigator-shop-products';
 const ATTRACTION_CACHE_KEY = 'montalban-navigator-attractions';
+window.ATTRACTION_CATEGORIES = Object.freeze(['Adventure', 'Hiking', 'Camping', 'Historical', 'Falls']);
 
 function escapeHtml(value) {
   return String(value)

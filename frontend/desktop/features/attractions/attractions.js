@@ -1,30 +1,42 @@
 // Admin attraction map, pin picker, and attraction form
 (function () {
+  let map;
+  let currentState;
+  let attractionMarkers = [];
+  let editingId = null;
+  let draftMarker = null;
+  let draftPosition = null;
+  let controlsInitialized = false;
+
   function renderAdminMap(state) {
     const container = document.getElementById('admin-map-view');
     if (!container || typeof window.L === 'undefined') {
       return;
     }
 
-    container.innerHTML = '';
-    const canvas = document.createElement('div');
-    canvas.className = 'leaflet-map';
-    canvas.id = 'admin-map-canvas';
-    container.appendChild(canvas);
+    currentState = state;
+    if (!map) {
+      container.innerHTML = '';
+      const canvas = document.createElement('div');
+      canvas.className = 'leaflet-map';
+      canvas.id = 'admin-map-canvas';
+      container.appendChild(canvas);
 
-    const map = window.L.map(canvas.id, {
-      zoomControl: true,
-      scrollWheelZoom: true
-    }).setView([14.73, 121.15], 13);
-    window.adminAttractionMap = map;
+      map = window.L.map(canvas.id, {
+        zoomControl: true,
+        scrollWheelZoom: true
+      }).setView([14.73, 121.15], 13);
+      window.adminAttractionMap = map;
 
-    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
 
     const form = document.getElementById('add-attraction-form');
     const nameInput = document.getElementById('attraction-name');
     const categoryInput = document.getElementById('attraction-category');
+    const categories = window.ATTRACTION_CATEGORIES || [];
     const feeInput = document.getElementById('attraction-fee');
     const durationInput = document.getElementById('attraction-duration');
     const descriptionInput = document.getElementById('attraction-description');
@@ -34,11 +46,9 @@
     const resetButton = document.getElementById('new-attraction-btn');
     const confirmPinButton = document.getElementById('confirm-pin-location');
     const pinPickerStatus = document.getElementById('pin-picker-status');
+    const pinPickerModal = document.getElementById('pin-picker-modal');
     const transportOptionList = document.getElementById('transport-option-list');
     const addTransportOptionButton = document.getElementById('add-transport-option');
-
-    let editingId = null;
-    let draftMarker = null;
 
     if (addTransportOptionButton) {
       addTransportOptionButton.onclick = () => window.AdminTransportFeature.addRow(transportOptionList);
@@ -50,7 +60,14 @@
         return;
       }
       nameInput.value = attraction?.name || '';
-      categoryInput.value = attraction?.category || '';
+      categoryInput.innerHTML = categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
+      if (attraction?.category && !categories.includes(attraction.category)) {
+        const option = document.createElement('option');
+        option.value = attraction.category;
+        option.textContent = attraction.category;
+        categoryInput.appendChild(option);
+      }
+      categoryInput.value = attraction?.category || categories[0] || '';
       feeInput.value = attraction?.fee || '';
       durationInput.value = attraction?.duration || '';
       descriptionInput.value = attraction?.description || '';
@@ -69,9 +86,9 @@
       window.AdminTransportFeature.loadOptions(transportOptionList, savedTransport);
 
       const coords = attraction ? getAttractionCoords(attraction) : [14.73, 121.15];
-      positionInput.value = `Lat ${coords[0].toFixed(4)}, Lng ${coords[1].toFixed(4)}`;
-      positionXInput.value = coords[0].toFixed(6);
-      positionYInput.value = coords[1].toFixed(6);
+      positionInput.value = attraction ? `Lat ${coords[0].toFixed(4)}, Lng ${coords[1].toFixed(4)}` : 'Choose a pin location first.';
+      positionXInput.value = attraction ? coords[0].toFixed(6) : '';
+      positionYInput.value = attraction ? coords[1].toFixed(6) : '';
     }
 
     function setDraftPosition(lat, lng) {
@@ -81,56 +98,86 @@
       positionInput.value = `Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`;
       positionXInput.value = lat.toFixed(6);
       positionYInput.value = lng.toFixed(6);
-      editingId = null;
     }
 
-    state.attractions.forEach((attraction) => {
-      const coords = getAttractionCoords(attraction);
-      const marker = window.L.marker(coords).addTo(map);
-      marker.bindTooltip(attraction.name, { permanent: false });
-      marker.on('click', () => {
-        populateForm(attraction);
-        if (draftMarker) {
-          map.removeLayer(draftMarker);
-          draftMarker = null;
-        }
-      });
-    });
+    function closePinPicker() {
+      if (draftMarker) map.removeLayer(draftMarker);
+      draftMarker = null;
+      draftPosition = null;
+      pinPickerModal.hidden = true;
+    }
 
-    map.on('click', (event) => {
-      if (draftMarker) {
-        map.removeLayer(draftMarker);
-      }
-      draftMarker = window.L.marker(event.latlng).addTo(map);
-      draftMarker.bindTooltip('New pin location');
-      setDraftPosition(event.latlng.lat, event.latlng.lng);
-      if (confirmPinButton) confirmPinButton.disabled = false;
-      if (pinPickerStatus) {
-        pinPickerStatus.textContent = `Selected location: ${event.latlng.lat.toFixed(5)}, ${event.latlng.lng.toFixed(5)}`;
-      }
-    });
-
-    resetButton?.addEventListener('click', () => {
-      populateForm(null);
-      if (transportOptionList) transportOptionList.innerHTML = '';
+    function selectForEdit(attraction) {
+      populateForm(attraction);
       if (draftMarker) {
         map.removeLayer(draftMarker);
         draftMarker = null;
       }
-    });
+      document.querySelector('[data-attraction-view="attraction-add-panel"]')?.click();
+      document.getElementById('attraction-add-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-    form?.addEventListener('submit', async (event) => {
+    if (!controlsInitialized) {
+      controlsInitialized = true;
+      map.on('click', (event) => {
+        if (draftMarker) map.removeLayer(draftMarker);
+        draftPosition = [event.latlng.lat, event.latlng.lng];
+        draftMarker = window.L.marker(draftPosition).addTo(map);
+        draftMarker.bindTooltip('New pin location');
+        if (confirmPinButton) confirmPinButton.disabled = false;
+        if (pinPickerStatus) {
+          pinPickerStatus.textContent = `Selected location: ${draftPosition[0].toFixed(5)}, ${draftPosition[1].toFixed(5)}`;
+        }
+      });
+
+      resetButton?.addEventListener('click', () => {
+        pinPickerModal.hidden = false;
+        if (draftMarker) map.removeLayer(draftMarker);
+        draftMarker = null;
+        const latitude = Number(positionXInput.value);
+        const longitude = Number(positionYInput.value);
+        if (Number.isFinite(latitude) && Number.isFinite(longitude) && positionXInput.value && positionYInput.value) {
+          draftPosition = [latitude, longitude];
+          draftMarker = window.L.marker(draftPosition).addTo(map);
+          draftMarker.bindTooltip('Selected pin location');
+          map.setView(draftPosition, 13);
+          if (confirmPinButton) confirmPinButton.disabled = false;
+          if (pinPickerStatus) pinPickerStatus.textContent = `Selected location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        } else {
+          draftPosition = null;
+          if (confirmPinButton) confirmPinButton.disabled = true;
+          if (pinPickerStatus) pinPickerStatus.textContent = 'No location selected yet.';
+        }
+        window.setTimeout(() => map.invalidateSize(), 0);
+      });
+      document.querySelector('[data-close-pin-picker]')?.addEventListener('click', () => {
+        closePinPicker();
+      });
+      confirmPinButton?.addEventListener('click', () => {
+        if (!draftPosition) return;
+        setDraftPosition(draftPosition[0], draftPosition[1]);
+        closePinPicker();
+      });
+
+      form?.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (form.dataset.saving === 'true') return;
       form.dataset.saving = 'true';
       try {
       const formData = new FormData(form);
+      const latitude = formData.get('positionX');
+      const longitude = formData.get('positionY');
       const coords = [
-        Number(formData.get('positionX') || 14.73),
-        Number(formData.get('positionY') || 121.15)
+        Number(latitude),
+        Number(longitude)
       ];
 
-      const existingAttraction = state.attractions.find((item) => item.id === editingId);
+      const existingAttraction = currentState.attractions.find((item) => item.id === editingId);
+      if (!latitude || !longitude || !Number.isFinite(coords[0]) || !Number.isFinite(coords[1])
+          || Math.abs(coords[0]) > 90 || Math.abs(coords[1]) > 180) {
+        window.alert('Choose a valid pin location before saving the attraction.');
+        return;
+      }
       const nextAttraction = {
         ...(existingAttraction || {}),
         id: editingId || `attraction-${window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`}`,
@@ -168,12 +215,24 @@
       } finally {
         delete form.dataset.saving;
       }
+      });
+
+      pinPickerModal.addEventListener('click', (event) => {
+        if (event.target.id === 'pin-picker-modal') closePinPicker();
+      });
+      populateForm(null);
+    }
+
+    attractionMarkers.forEach((marker) => map.removeLayer(marker));
+    attractionMarkers = state.attractions.map((attraction) => {
+      const marker = window.L.marker(getAttractionCoords(attraction)).addTo(map);
+      marker.bindTooltip(attraction.name, { permanent: false });
+      marker.on('click', () => selectForEdit(attraction));
+      return marker;
     });
 
-    window.adminSelectAttraction = (attraction) => {
-      populateForm(attraction);
-      document.getElementById('attraction-add-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
+    window.AdminAttractionsFeature.selectForEdit = selectForEdit;
+    window.adminSelectAttraction = selectForEdit;
   }
 
   function renderAdminAttractionsList(state) {
@@ -189,13 +248,20 @@
         <p><strong>Category:</strong> ${escapeHtml(attraction.category || 'General')}</p>
         <p>${escapeHtml(attraction.description)}</p>
         <p><strong>Fee:</strong> ${escapeHtml(attraction.fee)} • <strong>Duration:</strong> ${escapeHtml(attraction.duration)}</p>
+        <div class="attraction-management-actions">
+          <button class="btn btn-secondary" type="button" data-edit-attraction="${escapeHtml(attraction.id)}">Edit</button>
+        </div>
       `;
+      card.querySelector('[data-edit-attraction]').addEventListener('click', () => {
+        window.AdminAttractionsFeature.selectForEdit(attraction);
+      });
       attractionList.appendChild(card);
     });
   }
 
   window.AdminAttractionsFeature = {
     renderMap: renderAdminMap,
-    renderList: renderAdminAttractionsList
+    renderList: renderAdminAttractionsList,
+    selectForEdit: null
   };
 })();

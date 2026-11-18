@@ -15,7 +15,8 @@ Run these scripts in the Supabase SQL Editor in order:
 4. `database/security-lockdown.sql`
 5. `database/local-roles-resorts.sql`
 6. `database/resort-owner-listing-flow.sql`
-7. `database/role-workflows.sql`
+7. `database/resort-map-coordinates.sql`
+8. `database/role-workflows.sql`
 
 The resort migrations add barangay and resort roles, service offerings, owner
 approval, booking routing, and the associated RLS policies. Review the SQL

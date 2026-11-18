@@ -13,9 +13,19 @@
   <body class="barangay-admin-portal">
     <header class="topbar">
       <a class="brand" href="../web/user.html"><span>Montalban Navigator</span></a>
-      <nav class="nav-links" aria-label="Barangay admin navigation">
+      <div class="barangay-portal-links">
         <a href="admin-access.html">Admin portal</a>
         <a href="../web/index.html">Home</a>
+      </div>
+      <nav class="nav-links" aria-label="Barangay admin navigation">
+        <div class="barangay-tabs" role="tablist" aria-label="Barangay sections">
+        <button id="barangay-dashboard-tab" class="admin-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="barangay-dashboard-panel" data-barangay-tab="barangay-dashboard-panel" hidden>Dashboard</button>
+        <button id="barangay-add-attraction-tab" class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-add-attraction-panel" data-barangay-tab="barangay-add-attraction-panel" hidden>Add attraction</button>
+        <button id="barangay-add-product-tab" class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-add-product-panel" data-barangay-tab="barangay-add-product-panel" hidden>Add product</button>
+        <button id="barangay-existing-tab" class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-existing-panel" data-barangay-tab="barangay-existing-panel" hidden>Attractions</button>
+        <button id="barangay-bookings-tab" class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-bookings-panel" data-barangay-tab="barangay-bookings-panel" hidden>Bookings</button>
+        <button id="barangay-resorts-tab" class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-resorts-panel" data-barangay-tab="barangay-resorts-panel" hidden>Resorts</button>
+        </div>
         <button id="barangay-signout" class="btn btn-secondary sidebar-signout" type="button" hidden>Sign out</button>
       </nav>
     </header>
@@ -33,12 +43,21 @@
         </form>
       </section>
       <section id="barangay-dashboard" class="section" hidden>
-        <p class="eyebrow">Barangay booking queue</p>
+        <p class="eyebrow">Barangay administration</p>
         <h1 id="barangay-title">Assigned barangays</h1>
         <p id="barangay-access-message" role="status"></p>
+        <div id="barangay-dashboard-panel" data-barangay-panel role="tabpanel" aria-labelledby="barangay-dashboard-tab">
+          <div class="section-heading">
+            <h2>Dashboard</h2>
+            <p>Use the sidebar to manage attractions, products, bookings and resort reviews.</p>
+          </div>
+          <h3>Submission status</h3>
+          <div id="local-submissions" class="dashboard-grid"></div>
+        </div>
+        <div id="barangay-add-attraction-panel" data-barangay-panel role="tabpanel" aria-labelledby="barangay-add-attraction-tab" hidden>
         <div class="section-heading">
-          <h2>Attractions and shop products</h2>
-          <p>New attractions and products are published after municipal approval. Changes to existing attractions are saved directly.</p>
+          <h2>Add attraction</h2>
+          <p>New attractions are published after municipal approval. Changes to existing attractions are saved directly.</p>
         </div>
         <div class="dashboard-grid">
           <article class="dashboard-card">
@@ -50,7 +69,7 @@
               <label for="local-attraction-name">Name</label>
               <input id="local-attraction-name" required maxlength="120" />
               <label for="local-attraction-category">Category</label>
-              <input id="local-attraction-category" required maxlength="120" />
+              <select id="local-attraction-category" required></select>
               <label for="local-attraction-fee">Fee</label>
               <input id="local-attraction-fee" placeholder="₱50" required />
               <label for="local-attraction-duration">Duration</label>
@@ -86,6 +105,25 @@
               <p id="local-attraction-message" role="status" hidden></p>
             </form>
           </article>
+        </div>
+        <div id="local-pin-modal" class="modal-backdrop" hidden>
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="local-pin-title">
+            <div class="modal-heading">
+              <div><p class="eyebrow">Choose location</p><h3 id="local-pin-title">Choose the attraction location</h3></div>
+              <button class="btn btn-secondary" id="local-cancel-location" type="button">Cancel</button>
+            </div>
+            <p class="map-caption">Click the map where the attraction is located, then confirm the pin.</p>
+            <div id="local-pin-map" class="leaflet-map" aria-label="Attraction location map"></div>
+            <p id="local-pin-status" class="pin-picker-status">No location selected yet.</p>
+            <button class="btn btn-primary" id="local-confirm-location" type="button" disabled>Confirm pin location</button>
+          </div>
+        </div>
+        </div>
+        <div id="barangay-add-product-panel" data-barangay-panel role="tabpanel" aria-labelledby="barangay-add-product-tab" hidden>
+          <div class="section-heading">
+            <h2>Add product</h2>
+            <p>New products are published after municipal approval.</p>
+          </div>
           <article class="dashboard-card">
             <h3>Propose a shop product</h3>
             <form id="local-shop-form" class="booking-form">
@@ -100,32 +138,24 @@
             </form>
           </article>
         </div>
-        <div id="local-pin-modal" class="modal-backdrop" hidden>
-          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="local-pin-title">
-            <div class="modal-heading">
-              <div><p class="eyebrow">Choose location</p><h3 id="local-pin-title">Choose the attraction location</h3></div>
-              <button class="btn btn-secondary" id="local-cancel-location" type="button">Cancel</button>
-            </div>
-            <p class="map-caption">Click the map where the attraction is located, then confirm the pin.</p>
-            <div id="local-pin-map" class="leaflet-map" aria-label="Attraction location map"></div>
-            <p id="local-pin-status" class="pin-picker-status">No location selected yet.</p>
-            <button class="btn btn-primary" id="local-confirm-location" type="button" disabled>Confirm pin location</button>
-          </div>
+        <div id="barangay-existing-panel" data-barangay-panel role="tabpanel" aria-labelledby="barangay-existing-tab" hidden>
+          <h3>Existing attractions</h3>
+          <div id="local-attractions" class="dashboard-grid"></div>
         </div>
-        <h3>Existing attractions</h3>
-        <div id="local-attractions" class="dashboard-grid"></div>
-        <h3>Submission status</h3>
-        <div id="local-submissions" class="dashboard-grid"></div>
+        <div id="barangay-bookings-panel" data-barangay-panel role="tabpanel" aria-labelledby="barangay-bookings-tab" hidden>
         <div class="section-heading">
           <h2>Attraction bookings</h2>
           <p>Review and update requests from attractions assigned to your barangay. Resort requests stay with the owner.</p>
         </div>
         <div id="barangay-bookings" class="dashboard-grid"></div>
+        </div>
+        <div id="barangay-resorts-panel" data-barangay-panel role="tabpanel" aria-labelledby="barangay-resorts-tab" hidden>
         <div class="section-heading">
           <h2>Resort listings to review</h2>
           <p>Approve local resort information and fees before tourists can see it.</p>
         </div>
         <div id="barangay-resort-submissions" class="dashboard-grid"></div>
+        </div>
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

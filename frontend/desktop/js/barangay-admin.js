@@ -11,10 +11,30 @@
     element.hidden = false;
   }
 
+  function setupDashboardTabs() {
+    const tabs = Array.from(document.querySelectorAll?.('[data-barangay-tab]') || []);
+    const panels = Array.from(document.querySelectorAll?.('[data-barangay-panel]') || []);
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('aria-controls');
+        tabs.forEach((item) => {
+          const active = item === tab;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-selected', String(active));
+        });
+        panels.forEach((panel) => { panel.hidden = panel.id !== target; });
+      });
+    });
+  }
+
   function serviceSummary(services) {
     return (Array.isArray(services) ? services : []).map((service) =>
       `${escapeHtml(service.name)} — ₱${Number(service.fee).toLocaleString('en-PH')} / ${escapeHtml(service.pricingUnit)}`
     ).join('<br>');
+  }
+
+  function setTabsVisible(visible) {
+    document.querySelectorAll?.('[data-barangay-tab]')?.forEach((tab) => { tab.hidden = !visible; });
   }
 
   async function loadDashboard() {
@@ -25,6 +45,7 @@
       signInPanel.hidden = false;
       signOutButton.hidden = true;
       window.setDashboardNavigation?.(false);
+      setTabsVisible(false);
       if (user) showError(signInMessage, new Error('This account is not a Barangay Admin. Ask the Municipal Admin to assign your account.'));
       return;
     }
@@ -32,6 +53,7 @@
     signInPanel.hidden = true;
     dashboard.hidden = false;
     window.setDashboardNavigation?.(true);
+    setTabsVisible(true);
     signOutButton.hidden = false;
     accessMessage.hidden = true;
     const assignmentsResult = await supabaseClient
@@ -77,6 +99,8 @@
       select.innerHTML = options;
       if (barangays.some((area) => area.id === selected)) select.value = selected;
     });
+    document.getElementById('local-attraction-category').innerHTML = (window.ATTRACTION_CATEGORIES || [])
+      .map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
     const list = document.getElementById('local-attractions');
     list.innerHTML = attractions.length ? attractions.map((item) => `
       <article class="dashboard-card"><h4>${escapeHtml(item.name)}</h4>
@@ -89,9 +113,17 @@
         document.getElementById('local-attraction-id').value = item.id;
         document.getElementById('attraction-area').value = item.barangay_id;
         document.getElementById('attraction-area').disabled = true;
-        ['name', 'category', 'description', 'fee', 'duration', 'trail', 'expectations', 'terrain', 'startPoint'].forEach((field) => {
+        ['name', 'description', 'fee', 'duration', 'trail', 'expectations', 'terrain', 'startPoint'].forEach((field) => {
           document.getElementById(`local-attraction-${field}`).value = item[field] || '';
         });
+        const category = document.getElementById('local-attraction-category');
+        if (item.category && !(Array.from(category.options || []).some((option) => option.value === item.category))) {
+          const option = document.createElement('option');
+          option.value = item.category;
+          option.textContent = item.category;
+          category.appendChild(option);
+        }
+        category.value = item.category || '';
         document.getElementById('local-attraction-images').value = Array.isArray(item.images) ? item.images.join('\n') : '';
         window.AdminTransportFeature.loadOptions(document.getElementById('local-transport-options'), item.transportOptions || []);
         const coords = Array.isArray(item.coords) ? item.coords : [];
@@ -100,6 +132,7 @@
         document.getElementById('local-location-status').textContent = coords.length === 2
           ? `Lat ${coords[0]}, Lng ${coords[1]}` : 'Choose a pin location first.';
         document.getElementById('local-attraction-heading').textContent = 'Edit attraction';
+        document.querySelector('[data-barangay-tab="barangay-add-attraction-panel"]')?.click();
         document.getElementById('local-attraction-form').scrollIntoView({ behavior: 'smooth' });
       });
     });
@@ -250,11 +283,13 @@
         <p><strong>Status:</strong> ${escapeHtml(booking.status || 'Pending')}</p>
         <p><strong>Guide:</strong> ${escapeHtml(booking.assignedGuide || 'Not assigned')}</p>
         ${booking.status === 'Pending' ? `
+          <p>Approve this booking before assigning a guide.</p>
           <div class="attraction-management-actions">
             <button class="btn btn-primary" type="button" data-booking-decision="Approved" data-booking-id="${escapeHtml(booking.id)}">Approve</button>
             <button class="btn btn-secondary" type="button" data-booking-decision="Rejected" data-booking-id="${escapeHtml(booking.id)}">Decline</button>
           </div>` : ''}
         ${['Approved', 'Assigned'].includes(booking.status) ? `
+          ${guides.length ? '' : '<p>No approved guides are available. Ask the Municipal Admin to approve a guide.</p>'}
           <label for="guide-${escapeHtml(booking.id)}">Assign guide</label>
           <select id="guide-${escapeHtml(booking.id)}" data-guide-booking="${escapeHtml(booking.id)}">
             <option value="">Not assigned</option>
@@ -330,6 +365,7 @@
       showError(signInMessage, new Error('Connect this app to Supabase before signing in.'));
       return;
     }
+    setupDashboardTabs();
     setupLocalForms();
     signInForm.addEventListener('submit', async (event) => {
       event.preventDefault();

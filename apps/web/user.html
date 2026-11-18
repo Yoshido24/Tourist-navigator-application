@@ -46,6 +46,10 @@
           <h1>Explore Montalban attractions</h1>
           <p>Choose a pin to see what is available, then book your visit or open directions.</p>
         </div>
+        <div class="filter-row category-filters">
+          <label for="map-category-filter">Show on map</label>
+          <select id="map-category-filter" class="booking-form-input" data-attraction-category aria-label="Filter map pins by category"></select>
+        </div>
         <div class="tourist-map-layout">
           <div id="tourist-map" class="map-view map-view-primary" aria-label="Map of tourist attractions"></div>
           <aside id="tourist-map-details" class="map-attraction-details" aria-live="polite">
@@ -59,13 +63,9 @@
           <p class="eyebrow">Choose your destination</p>
           <h2>Pick a place, review the details, and book your visit in one flow.</h2>
         </div>
-        <div class="category-filters" role="group" aria-label="Filter attractions by category">
-          <button class="btn btn-secondary is-active" type="button" data-attraction-category="all" aria-pressed="true">All</button>
-          <button class="btn btn-secondary" type="button" data-attraction-category="adventure" aria-pressed="false">Adventure</button>
-          <button class="btn btn-secondary" type="button" data-attraction-category="hiking" aria-pressed="false">Hiking</button>
-          <button class="btn btn-secondary" type="button" data-attraction-category="camping" aria-pressed="false">Camping</button>
-          <button class="btn btn-secondary" type="button" data-attraction-category="historical" aria-pressed="false">Historical</button>
-          <button class="btn btn-secondary" type="button" data-attraction-category="resorts" aria-pressed="false" data-user-tab-target="user-resorts">Resorts</button>
+        <div class="filter-row category-filters">
+          <label for="attraction-category-filter">Filter attractions</label>
+          <select id="attraction-category-filter" class="booking-form-input" data-attraction-category aria-label="Filter attractions by category"></select>
         </div>
         <div class="attraction-shell">
           <div class="attraction-menu-card">

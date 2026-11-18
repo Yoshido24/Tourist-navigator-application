@@ -42,6 +42,7 @@ function getAttractionCoords(attraction) {
 
 // Admin overview cards, guides, and guide applications
 function renderAdminPage(state) {
+  window.AdminAttractionsFeature?.renderMap(state);
   window.AdminAttractionsFeature?.renderList(state);
 
   const bookingCount = document.getElementById('stat-bookings');
@@ -190,6 +191,14 @@ function setupAdminControls() {
       });
       document.querySelectorAll('.admin-tab-panel').forEach((panel) => {
         panel.hidden = panel.id !== target;
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-local-admin-view]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('[data-local-admin-panel]').forEach((panel) => {
+        panel.hidden = panel.id !== tab.dataset.localAdminView;
       });
     });
   });

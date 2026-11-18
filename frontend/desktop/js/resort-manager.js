@@ -77,6 +77,97 @@
     return services;
   }
 
+  function validResortCoords(coords) {
+    if (typeof coords === 'string') {
+      try {
+        coords = JSON.parse(coords);
+      } catch {
+        return null;
+      }
+    }
+    if (!Array.isArray(coords) || coords.length !== 2) return null;
+    const [latitude, longitude] = coords.map(Number);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+        Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+    return [latitude, longitude];
+  }
+
+  function setupLocationPicker() {
+    const form = document.getElementById('owner-listing-form');
+    const chooseButton = document.getElementById('owner-choose-location');
+    const modal = document.getElementById('owner-pin-modal');
+    if (!form || !chooseButton || !modal) return null;
+    const status = document.getElementById('owner-pin-status');
+    const pickerStatus = document.getElementById('owner-pin-picker-status');
+    const confirmButton = document.getElementById('owner-confirm-location');
+    let map;
+    let marker;
+    let selectedCoords = null;
+    let draftCoords = null;
+
+    function showMarker(coords) {
+      if (marker) map.removeLayer(marker);
+      marker = window.L.marker(coords).addTo(map);
+      marker.bindTooltip('Selected resort location');
+    }
+
+    function setStatus(coords) {
+      const message = coords
+        ? `Selected location: ${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}`
+        : 'Choose the resort location on the map.';
+      status.textContent = message;
+      pickerStatus.textContent = message;
+      confirmButton.disabled = !coords;
+    }
+
+    chooseButton.addEventListener('click', () => {
+      if (!window.L) {
+        setMessage('owner-listing-error', 'The map could not load. Please try again.', true);
+        return;
+      }
+      modal.hidden = false;
+      draftCoords = selectedCoords;
+      if (!map) {
+        map = window.L.map('owner-pin-map', { zoomControl: true, scrollWheelZoom: true })
+          .setView(selectedCoords || [14.73, 121.15], selectedCoords ? 15 : 13);
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        map.on('click', (event) => {
+          draftCoords = validResortCoords([event.latlng.lat, event.latlng.lng]);
+          if (draftCoords) showMarker(draftCoords);
+          setStatus(draftCoords);
+        });
+      } else {
+        map.setView(selectedCoords || [14.73, 121.15], selectedCoords ? 15 : 13);
+      }
+      if (draftCoords) showMarker(draftCoords);
+      setStatus(draftCoords);
+      window.setTimeout(() => map.invalidateSize(), 0);
+    });
+    document.getElementById('owner-cancel-location').addEventListener('click', () => {
+      modal.hidden = true;
+      draftCoords = selectedCoords;
+    });
+    confirmButton.addEventListener('click', () => {
+      if (!draftCoords) return;
+      selectedCoords = draftCoords.slice();
+      const message = `Resort pin: ${selectedCoords[0].toFixed(5)}, ${selectedCoords[1].toFixed(5)}`;
+      status.textContent = message;
+      pickerStatus.textContent = message;
+      modal.hidden = true;
+    });
+    const setCoords = (coords) => {
+      selectedCoords = validResortCoords(coords);
+      const message = selectedCoords
+        ? `Resort pin: ${selectedCoords[0].toFixed(5)}, ${selectedCoords[1].toFixed(5)}`
+        : 'Choose the resort location on the map.';
+      status.textContent = message;
+      pickerStatus.textContent = message;
+    };
+    return { getCoords: () => selectedCoords, setCoords };
+  }
+
   async function loadBarangays() {
     const { data, error } = await supabaseClient.from('barangays').select('id,name').order('name');
     if (error) throw error;
@@ -247,6 +338,7 @@
       setMessage(signUp ? 'owner-signup-error' : 'owner-login-error', 'Connect this app to Supabase to continue.', true);
       return;
     }
+    const listingLocation = setupLocationPicker();
     document.querySelectorAll('[data-add-service]').forEach((button) => {
       button.addEventListener('click', () => addServiceRow(button.dataset.addService));
     });
@@ -306,6 +398,7 @@
       rows.replaceChildren();
       (editableListing.services || []).forEach((service) => addServiceRow('owner-service-rows', service));
       if (!editableListing.services?.length) addServiceRow('owner-service-rows');
+      listingLocation?.setCoords(editableListing.coords);
     });
     document.getElementById('owner-cancel-edit')?.addEventListener('click', () => {
       document.getElementById('owner-listing-form').hidden = true;
@@ -315,6 +408,8 @@
       const errorBox = document.getElementById('owner-listing-error');
       errorBox.hidden = true;
       if (!editableListing || !owner) return setMessage('owner-listing-error', 'There is no listing to submit.', true);
+      const coords = listingLocation?.getCoords();
+      if (!coords) return setMessage('owner-listing-error', 'Choose the resort location on the map before submitting.', true);
       let services;
       try {
         services = collectServices('owner-service-rows', true);
@@ -330,6 +425,7 @@
         description: document.getElementById('owner-listing-description').value.trim(),
         contact: editableListing.contact || '',
         images: editableListing.images || [],
+        coords,
         services,
         status: 'Pending'
       });

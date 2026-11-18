@@ -135,21 +135,34 @@ export function createLocalAccountsHandler({ env, fetchImpl = fetch, now = () =>
     if (!(await barangaysExist([resort.barangayId]))) return fail(400, 'Please choose a valid barangay.');
 
     // The municipal admin grants manager access only after reviewing this application.
-    const signupResponse = await fetchImpl(`${base}/auth/v1/signup`, {
+    // The admin endpoint avoids public-signup settings and confirmation-email sending, which can fail independently of the email being taken.
+    const signupResponse = await fetchImpl(`${base}/auth/v1/admin/users`, {
       method: 'POST',
       headers: serviceHeaders,
       body: JSON.stringify({
         email: body.email.trim(),
         password: body.password,
-        data: { account_type: 'resort_manager', name: body.name.trim() }
+        email_confirm: true,
+        user_metadata: { account_type: 'resort_manager', name: body.name.trim() }
       })
     });
-    if (!signupResponse.ok) return fail(400, 'We could not create that account. The email may already be registered.');
-    const signup = await signupResponse.json();
-    const user = signup?.user ?? signup;
-    if (Array.isArray(user?.identities) && user.identities.length === 0) {
-      return fail(400, 'We could not create that account. The email may already be registered.');
+    if (!signupResponse.ok) {
+      let signupError = {};
+      try {
+        signupError = await signupResponse.json();
+      } catch {
+        // A non-JSON Auth response cannot be classified as a duplicate safely.
+      }
+      if (!signupError || typeof signupError !== 'object' || Array.isArray(signupError)) signupError = {};
+      const errorCode = signupError.code || signupError.error_code;
+      const errorMessage = signupError.message || signupError.msg || signupError.error_description || '';
+      const duplicate = ['email_exists', 'user_already_exists'].includes(errorCode) ||
+        /already registered|already exists/i.test(errorMessage);
+      return duplicate
+        ? fail(400, 'We could not create that account. The email may already be registered.')
+        : fail(502, 'Account registration is temporarily unavailable.');
     }
+    const user = await signupResponse.json();
     const userId = user?.id;
     if (!userId) return fail(502, 'Account registration is temporarily unavailable.');
 

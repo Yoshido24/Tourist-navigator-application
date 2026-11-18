@@ -34,7 +34,15 @@
         <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="shop" data-admin-tab="shop">Mini shop</button>
         <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="guides" data-admin-tab="guides">Guides</button>
         <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="management" data-admin-tab="management">Management</button>
-        <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="local-admin" data-admin-tab="local-admin">Local admin</button>
+        <details class="local-admin-menu">
+          <summary class="admin-tab">Local admin</summary>
+          <button class="admin-tab" type="button" data-admin-tab="local-admin" data-local-admin-view="local-areas">Barangays and admins</button>
+          <button class="admin-tab" type="button" data-admin-tab="local-admin" data-local-admin-view="local-owners">Resort owners</button>
+          <button class="admin-tab" type="button" data-admin-tab="local-admin" data-local-admin-view="local-attraction-reviews">Attraction approvals</button>
+          <button class="admin-tab" type="button" data-admin-tab="local-admin" data-local-admin-view="local-product-reviews">Product approvals</button>
+          <button class="admin-tab" type="button" data-admin-tab="local-admin" data-local-admin-view="local-attraction-areas">Attraction assignments</button>
+          <button class="admin-tab" type="button" data-admin-tab="local-admin" data-local-admin-view="local-resort-reviews">Resort reviews</button>
+        </details>
       </nav>
     </header>
 
@@ -183,17 +191,18 @@
           <h2>Keep attraction details organized and easy to manage.</h2>
         </div>
         <div class="subtabs" role="tablist" aria-label="Attraction management">
-          <button class="subtab is-active" type="button" role="tab" aria-selected="true" data-attraction-view="attraction-list-panel">Attraction list</button>
+          <button id="attraction-list-tab" class="subtab is-active" type="button" role="tab" aria-selected="true" aria-controls="attraction-list-panel" data-attraction-view="attraction-list-panel">Attraction list</button>
+          <button id="attraction-add-tab" class="subtab" type="button" role="tab" aria-selected="false" aria-controls="attraction-add-panel" data-attraction-view="attraction-add-panel">Add / edit attraction</button>
         </div>
-        <div id="attraction-list-panel" class="attraction-view-panel">
+        <div id="attraction-list-panel" class="attraction-view-panel" role="tabpanel" aria-labelledby="attraction-list-tab">
           <div class="section-heading compact-heading">
             <p class="eyebrow">Saved destinations</p>
             <h3>Attractions</h3>
-            <p>Barangay Admins maintain local attractions. Assign their barangays under Local admin.</p>
+            <p>Edit an existing attraction or add a new one. Barangay Admins maintain their local attractions.</p>
           </div>
           <div id="admin-attractions-list" class="dashboard-grid attraction-grid"></div>
         </div>
-        <div id="attraction-add-panel" class="attraction-view-panel" hidden>
+        <div id="attraction-add-panel" class="attraction-view-panel" role="tabpanel" aria-labelledby="attraction-add-tab" hidden>
           <article class="dashboard-card">
             <div class="section-heading compact-heading">
               <p class="eyebrow">Attraction details</p>
@@ -202,7 +211,7 @@
             </div>
             <form id="add-attraction-form" class="booking-form">
               <div class="filter-row">
-                <button class="btn btn-secondary" id="new-attraction-btn" type="button">Choose another pin</button>
+                <button class="btn btn-secondary" id="new-attraction-btn" type="button">Choose attraction pin</button>
               </div>
                 <div class="filter-row">
                   <p id="attraction-position" class="pin-confirmed-message">Choose a pin location first.</p>
@@ -210,7 +219,7 @@
                 <label for="attraction-name">Name</label>
                 <input id="attraction-name" name="name" required />
                 <label for="attraction-category">Category</label>
-                <input id="attraction-category" name="category" placeholder="Nature" required />
+                <select id="attraction-category" name="category" required></select>
                 <label for="attraction-fee">Fee</label>
                 <input id="attraction-fee" name="fee" placeholder="₱50" required />
                 <label for="attraction-duration">Duration</label>
@@ -288,6 +297,7 @@
           <h2>Manage barangay access and review resort owner accounts.</h2>
         </div>
         <p id="local-admin-message" class="success-message" role="status" hidden></p>
+        <div id="local-areas" data-local-admin-panel>
         <div class="dashboard-grid">
           <article class="dashboard-card">
             <h3>Add a barangay</h3>
@@ -312,18 +322,29 @@
             </form>
           </article>
         </div>
+        </div>
+        <div id="local-owners" data-local-admin-panel hidden>
         <h3>Resort owner accounts awaiting municipal approval</h3>
         <div id="resort-manager-applications" class="dashboard-grid"></div>
+        </div>
+        <div id="local-attraction-reviews" data-local-admin-panel hidden>
         <h3>Attractions awaiting municipal approval</h3>
         <div id="municipal-attraction-proposals" class="dashboard-grid"></div>
+        </div>
+        <div id="local-product-reviews" data-local-admin-panel hidden>
         <h3>Shop products awaiting municipal approval</h3>
         <div id="municipal-shop-proposals" class="dashboard-grid"></div>
+        </div>
+        <div id="local-attraction-areas" data-local-admin-panel hidden>
         <h3>Assign existing attractions to barangays</h3>
         <p>Unassigned attractions stay visible but cannot receive new bookings.</p>
         <div id="municipal-attraction-areas" class="dashboard-grid"></div>
+        </div>
+        <div id="local-resort-reviews" data-local-admin-panel hidden>
         <h3>All resort listing reviews</h3>
         <p>Barangay Admins handle local reviews; use the municipal review action only when intervention is needed.</p>
         <div id="municipal-resort-submissions" class="dashboard-grid"></div>
+        </div>
       </section>
 
     </main>

@@ -50,13 +50,16 @@ test('approved owners add services before submitting their first listing', async
       'owner-account-status', 'owner-dashboard-title', 'owner-listing', 'owner-edit-listing',
       'owner-listing-form', 'owner-cancel-edit', 'owner-listing-name', 'owner-listing-barangay',
       'owner-listing-address', 'owner-listing-description', 'owner-service-rows',
-      'owner-listing-error', 'owner-bookings'
+      'owner-listing-error', 'owner-bookings', 'owner-choose-location', 'owner-pin-modal',
+      'owner-pin-map', 'owner-pin-status', 'owner-pin-picker-status', 'owner-confirm-location',
+      'owner-cancel-location'
     ];
     const elements = Object.fromEntries(ids.map((id) => [id, element()]));
     let start;
     const inserts = [];
     const submissions = [];
     let rows = [];
+    let map;
     const service = {
       dataset: { serviceId: '' },
       querySelector(selector) {
@@ -84,7 +87,22 @@ test('approved owners add services before submitting their first listing', async
     };
     const sidebar = [];
     const context = vm.createContext({
-      window: { setDashboardNavigation: (visible) => sidebar.push(visible) },
+      window: {
+        setDashboardNavigation: (visible) => sidebar.push(visible),
+        setTimeout() {},
+        L: {
+          map() {
+            map = {
+              setView() { return this; },
+              on(event, handler) { this[event] = handler; },
+              invalidateSize() {}
+            };
+            return map;
+          },
+          tileLayer() { return { addTo() {} }; },
+          marker() { return { addTo() { return this; }, bindTooltip() {} }; }
+        }
+      },
       document: {
         getElementById: (id) => elements[id] || null,
         querySelectorAll: (selector) => selector === '#owner-service-rows [data-service-row]' ? rows : [],
@@ -108,6 +126,12 @@ test('approved owners add services before submitting their first listing', async
     assert.equal(elements['owner-listing-form'].hidden, false);
     assert.equal(elements['owner-listing-name'].value, 'Sunset');
     await elements['owner-listing-form'].submit({ preventDefault() {} });
+    assert.match(elements['owner-listing-error'].textContent, /choose the resort location/i);
+    assert.equal(inserts.length, 0);
+    elements['owner-choose-location'].click();
+    map.click({ latlng: { lat: 14.73, lng: 121.15 } });
+    elements['owner-confirm-location'].click();
+    await elements['owner-listing-form'].submit({ preventDefault() {} });
     assert.equal(inserts.length, 0);
     assert.match(elements['owner-listing-error'].textContent, /at least one service/i);
     rows = [service];
@@ -117,9 +141,84 @@ test('approved owners add services before submitting their first listing', async
     assert.equal(inserts[0].status, 'Pending');
     assert.equal(inserts[0].services[0].name, 'Day pass');
     assert.equal(inserts[0].services[0].fee, 250);
+    assert.deepEqual(Array.from(inserts[0].coords), [14.73, 121.15]);
     assert.equal(elements['owner-listing-form'].hidden, true);
     assert.equal(elements['owner-edit-listing'].hidden, true);
     assert.match(elements['owner-listing'].innerHTML, /waiting for Barangay Admin review/i);
+});
+
+test('editing an approved listing reuses its saved map coordinates', async () => {
+  const ids = [
+    'resort-signin', 'resort-auth-panel', 'resort-dashboard', 'resort-signout', 'owner-login-error',
+    'owner-account-status', 'owner-dashboard-title', 'owner-listing', 'owner-edit-listing',
+    'owner-listing-form', 'owner-listing-name', 'owner-listing-barangay', 'owner-listing-address',
+    'owner-listing-description', 'owner-service-rows', 'owner-listing-error', 'owner-bookings',
+    'owner-choose-location', 'owner-pin-modal', 'owner-pin-map', 'owner-pin-status', 'owner-pin-picker-status',
+    'owner-confirm-location', 'owner-cancel-location'
+  ];
+  const elements = Object.fromEntries(ids.map((id) => [id, {
+    hidden: true, textContent: '', innerHTML: '', value: '', dataset: {},
+    classList: { toggle() {} },
+    addEventListener(event, handler) { this[event] = handler; },
+    replaceChildren() {},
+    appendChild() {}
+  }]));
+  const savedCoords = [14.12, 121.43];
+  let map;
+  const context = vm.createContext({
+    window: {
+      setDashboardNavigation() {},
+      setTimeout() {},
+      L: {
+        map() {
+          map = {
+            views: [],
+            setView(coords) { this.views.push(coords); return this; },
+            on(event, handler) { this[event] = handler; },
+            invalidateSize() {}
+          };
+          return map;
+        },
+        tileLayer() { return { addTo() {} }; },
+        marker() { return { addTo() { return this; }, bindTooltip() {} }; }
+      }
+    },
+    document: {
+      getElementById: (id) => elements[id] || null,
+      querySelectorAll: () => [],
+      createElement: () => ({
+        dataset: {},
+        querySelector: () => ({ value: '', addEventListener() {} })
+      }),
+      addEventListener: (_, handler) => { context.start = handler; }
+    },
+    supabaseClient: {
+      auth: { getSession: async () => ({ data: { session: { user: { id: 'owner' } } }, error: null }) },
+      from(table) {
+        if (table === 'resort_managers') return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { name: 'Owner' }, error: null }) }) }) };
+        if (table === 'barangays') return { select: () => ({ order: async () => ({ data: [{ id: 'b1', name: 'Barangay' }], error: null }) }) };
+        if (table === 'resort_manager_applications') return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) };
+        if (table === 'resort_submissions') return { select: () => ({ eq: () => ({ order: async () => ({
+          data: [{
+            id: 'submission-1', resort_id: 'resort-1', status: 'Approved', name: 'Sunset',
+            barangay_id: 'b1', coords: savedCoords, services: [{ id: 'service-1', name: 'Day pass', type: 'day_visit', fee: 100, pricingUnit: 'person' }]
+          }], error: null
+        }) }) }) };
+        if (table === 'bookings') return { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) };
+        throw new Error(`Unexpected table: ${table}`);
+      }
+    },
+    escapeHtml: String,
+    crypto: { randomUUID: () => 'service-id' }
+  });
+  vm.runInContext(readFileSync(new URL('./resort-manager.js', import.meta.url), 'utf8'), context);
+  context.start();
+  await new Promise((resolve) => setImmediate(resolve));
+  elements['owner-edit-listing'].click();
+  elements['owner-choose-location'].click();
+
+  assert.deepEqual(Array.from(map.views[0]), savedCoords);
+  assert.match(elements['owner-pin-status'].textContent, /14\.12.*121\.43/);
 });
 
 test('owner registration submits without service fields', async () => {
@@ -169,7 +268,7 @@ test('owner registration displays the server reason when the function rejects an
   let start;
   const getFunctionErrorMessage = vm.runInNewContext(
     `${readFileSync(new URL('../../shared/js/state.js', import.meta.url), 'utf8')}\ngetFunctionErrorMessage`,
-    { console }
+    { window: {}, console }
   );
   const context = vm.createContext({
     document: {
