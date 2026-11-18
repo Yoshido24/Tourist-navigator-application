@@ -24,14 +24,15 @@
   <body class="user-responsive-portal">
     <header class="topbar">
       <a class="brand" href="index.html">
-        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/666495367_942507755196296_8478441648281040178_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx600x600&amp;ctp=s600x600&amp;_nc_cat=104&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeFJjOkvwR1LTBcd-ukCdIVin81sb4V4AfGfzWxvhXgB8cq9GVJY6gVCoJUQxuNEYvdSiGuJhuqHvjXrotFk5OZK&amp;_nc_ohc=lYsUDrgVYg8Q7kNvwH_r7u3&amp;_nc_oc=AdqAFLsjE4bM_qGSNWnbA-u1DjX0TzTb1eW-nfbzUhzKRBVsRPW_NY9qt4WYZjhoudk&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=0e37PKDMBWv1g8j56QbHLg&amp;_nc_ss=7b2a8&amp;oh=00_AQIrJjeoGqSPLZLIc2tra0KL0-KcRbzaFlG50hJ40vPC4w&amp;oe=6ABB0C63" alt="Montalban Tourism logo" />
-        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/273650543_313668970801003_3153621589256724843_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx960x960&amp;ctp=s960x960&amp;_nc_cat=111&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeF67zClS5dA84yY7EJQ9KEjAi2qRGiNL3cCLapEaI0vd-BygJRZBqMXu84p5-srsXtYrT6tkkYpxwJFoM-EScD1&amp;_nc_ohc=142XgEnnH3sQ7kNvwEkl0Ca&amp;_nc_oc=AdrzETOBBKhtskP0ICZtbduAqfUp9hcAupRc0KoMh7MRTFFCYG30vRG-wK0-T-F7ugM&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=A40C89n_t5xeSxPnP_PpoQ&amp;_nc_ss=7b2a8&amp;oh=00_AQKLdXmsvIZWCiq8pwTh5cp7xQeFh71sqruA5oAg2aMUpA&amp;oe=6ABB0C8F" alt="Montalban logo" />
+        <img class="brand-logo" src="../../assets/logos/tourism-logo.png" alt="Montalban Tourism logo" />
+        <img class="brand-logo" src="../../assets/logos/montalban-logo.png" alt="Montalban logo" />
         <span>Montalban Navigator</span>
       </a>
       <button class="user-menu-toggle" type="button" id="user-menu-toggle" aria-label="Open navigation menu" aria-controls="user-navigation" aria-expanded="false">☰</button>
       <nav class="nav-links user-tabs" id="user-navigation" aria-label="Traveler sections" role="tablist">
         <button class="user-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="user-map" data-user-tab="user-map">Map</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-attractions" data-user-tab="user-attractions">Attractions</button>
+        <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-resorts" data-user-tab="user-resorts">Resorts</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-booking" data-user-tab="user-booking">Booking</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-directions" data-user-tab="user-directions">Directions</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-shop" data-user-tab="user-shop">Mini shop</button>
@@ -58,6 +59,14 @@
           <p class="eyebrow">Choose your destination</p>
           <h2>Pick a place, review the details, and book your visit in one flow.</h2>
         </div>
+        <div class="category-filters" role="group" aria-label="Filter attractions by category">
+          <button class="btn btn-secondary is-active" type="button" data-attraction-category="all" aria-pressed="true">All</button>
+          <button class="btn btn-secondary" type="button" data-attraction-category="adventure" aria-pressed="false">Adventure</button>
+          <button class="btn btn-secondary" type="button" data-attraction-category="hiking" aria-pressed="false">Hiking</button>
+          <button class="btn btn-secondary" type="button" data-attraction-category="camping" aria-pressed="false">Camping</button>
+          <button class="btn btn-secondary" type="button" data-attraction-category="historical" aria-pressed="false">Historical</button>
+          <button class="btn btn-secondary" type="button" data-attraction-category="resorts" aria-pressed="false" data-user-tab-target="user-resorts">Resorts</button>
+        </div>
         <div class="attraction-shell">
           <div class="attraction-menu-card">
             <h3>Available attractions</h3>
@@ -69,7 +78,6 @@
                 <p class="eyebrow">Selected destination</p>
                 <h3 id="selected-attraction-name">Loading destination...</h3>
               </div>
-              <button class="btn btn-primary" type="button" data-user-tab-target="user-booking">Book this trip</button>
             </div>
             <div id="attraction-gallery" class="detail-gallery"></div>
             <div class="detail-grid">
@@ -98,8 +106,54 @@
                 <p id="selected-attraction-trail"></p>
               </div>
             </div>
+            <button class="btn btn-primary book-trip-btn" type="button" data-user-tab-target="user-booking">Book this trip</button>
           </div>
         </div>
+      </section>
+
+      <section id="user-resorts" class="section section-alt user-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Resorts and local services</p>
+          <h2>Compare resort services and fees, then send a request to the owner.</h2>
+          <p>Requests are confirmed by the resort. Availability is checked manually; payment is not collected here.</p>
+        </div>
+        <div id="resort-list" class="shop-grid" aria-live="polite"></div>
+        <article id="resort-detail" class="dashboard-card resort-detail" hidden>
+          <h3 id="selected-resort-name"></h3>
+          <p id="selected-resort-location"></p>
+          <p id="selected-resort-description"></p>
+          <div id="selected-resort-services" class="resort-service-list"></div>
+          <form id="resort-booking-form" class="booking-form">
+            <label for="resort-service">Service to request</label>
+            <select id="resort-service" name="serviceId" required></select>
+            <label for="resort-traveler">Your name</label>
+            <input id="resort-traveler" name="travelerName" autocomplete="name" required />
+            <label for="resort-contact">Contact number</label>
+            <input id="resort-contact" name="contact" autocomplete="tel" required />
+            <label for="resort-guests">Number of guests</label>
+            <input id="resort-guests" name="guests" type="number" min="1" max="1000" value="1" required />
+            <div id="resort-service-date-field">
+              <label for="resort-service-date">Visit date</label>
+              <input id="resort-service-date" name="date" type="date" required />
+            </div>
+            <div id="resort-stay-date-fields" hidden>
+              <label for="resort-check-in">Check-in</label>
+              <input id="resort-check-in" name="checkIn" type="date" />
+              <label for="resort-check-out">Check-out</label>
+              <input id="resort-check-out" name="checkOut" type="date" />
+            </div>
+            <label for="resort-notes">Notes for the owner</label>
+            <textarea id="resort-notes" name="notes" rows="3" maxlength="1000"></textarea>
+            <label class="checkbox-row" for="resort-booking-terms">
+              <input id="resort-booking-terms" name="terms" type="checkbox" required />
+              <span>I agree to the <a href="legal.html#terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="legal.html#privacy" target="_blank" rel="noopener">Privacy Notice</a>.</span>
+            </label>
+            <div id="resort-booking-captcha" aria-label="Human verification"></div>
+            <button class="btn btn-primary" type="submit">Send booking request</button>
+            <p id="resort-booking-error" class="success-message error-message" role="alert" hidden></p>
+            <p id="resort-booking-success" class="success-message" role="status" hidden>Your request was sent to the resort owner.</p>
+          </form>
+        </article>
       </section>
 
       <section id="user-booking" class="section section-alt user-tab-panel" role="tabpanel" hidden>
@@ -221,6 +275,7 @@
     <script src="../../frontend/shared/js/state.js"></script>
     <script src="../../frontend/web/features/attractions/attractions.js"></script>
     <script src="../../frontend/web/features/booking/booking.js"></script>
+    <script src="../../frontend/web/features/resorts/resorts.js"></script>
     <script src="../../frontend/web/features/directions/directions.js"></script>
     <script src="../../frontend/web/features/shop/shop.js"></script>
     <script src="../../frontend/web/features/map/map.js"></script>

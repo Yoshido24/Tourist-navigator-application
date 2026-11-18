@@ -189,23 +189,7 @@
         <p><strong>Category:</strong> ${escapeHtml(attraction.category || 'General')}</p>
         <p>${escapeHtml(attraction.description)}</p>
         <p><strong>Fee:</strong> ${escapeHtml(attraction.fee)} • <strong>Duration:</strong> ${escapeHtml(attraction.duration)}</p>
-        <div class="attraction-management-actions">
-          <button class="btn btn-secondary" type="button" data-attraction-edit>Edit</button>
-          <button class="btn btn-secondary" type="button" data-attraction-delete>Delete</button>
-        </div>
       `;
-      card.querySelector('[data-attraction-edit]').addEventListener('click', () => {
-        document.querySelector('[data-admin-tab="attractions"]')?.click();
-        document.querySelector('[data-attraction-view="attraction-add-panel"]')?.click();
-        window.adminSelectAttraction?.(attraction);
-      });
-      card.querySelector('[data-attraction-delete]').addEventListener('click', async () => {
-        if (!window.confirm(`Delete ${attraction.name}?`)) return;
-        await updateState((currentState) => ({
-          ...currentState,
-          attractions: currentState.attractions.filter((item) => item.id !== attraction.id)
-        }));
-      });
       attractionList.appendChild(card);
     });
   }

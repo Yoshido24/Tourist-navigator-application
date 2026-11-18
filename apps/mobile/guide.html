@@ -15,12 +15,14 @@
   <body class="guide-mobile-portal">
     <header class="topbar">
       <a class="brand" href="guide-auth.html">
-        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/666495367_942507755196296_8478441648281040178_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx600x600&amp;ctp=s600x600&amp;_nc_cat=104&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeFJjOkvwR1LTBcd-ukCdIVin81sb4V4AfGfzWxvhXgB8cq9GVJY6gVCoJUQxuNEYvdSiGuJhuqHvjXrotFk5OZK&amp;_nc_ohc=lYsUDrgVYg8Q7kNvwH_r7u3&amp;_nc_oc=AdqAFLsjE4bM_qGSNWnbA-u1DjX0TzTb1eW-nfbzUhzKRBVsRPW_NY9qt4WYZjhoudk&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=0e37PKDMBWv1g8j56QbHLg&amp;_nc_ss=7b2a8&amp;oh=00_AQIrJjeoGqSPLZLIc2tra0KL0-KcRbzaFlG50hJ40vPC4w&amp;oe=6ABB0C63" alt="Montalban Tourism logo" />
-        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/273650543_313668970801003_3153621589256724843_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx960x960&amp;ctp=s960x960&amp;_nc_cat=111&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeF67zClS5dA84yY7EJQ9KEjAi2qRGiNL3cCLapEaI0vd-BygJRZBqMXu84p5-srsXtYrT6tkkYpxwJFoM-EScD1&amp;_nc_ohc=142XgEnnH3sQ7kNvwEkl0Ca&amp;_nc_oc=AdrzETOBBKhtskP0ICZtbduAqfUp9hcAupRc0KoMh7MRTFFCYG30vRG-wK0-T-F7ugM&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=A40C89n_t5xeSxPnP_PpoQ&amp;_nc_ss=7b2a8&amp;oh=00_AQKLdXmsvIZWCiq8pwTh5cp7xQeFh71sqruA5oAg2aMUpA&amp;oe=6ABB0C8F" alt="Montalban logo" />
+        <img class="brand-logo" src="../../assets/logos/tourism-logo.png" alt="Montalban Tourism logo" />
+        <img class="brand-logo" src="../../assets/logos/montalban-logo.png" alt="Montalban logo" />
         <span>Guide access</span>
       </a>
       <nav class="nav-links guide-tabs" aria-label="Guide sections" role="tablist">
-        <button class="guide-tab is-active" type="button" role="tab" aria-selected="true" data-guide-tab="guide-overview">Overview</button>
+        <button class="guide-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="guide-overview" data-guide-tab="guide-overview">Overview</button>
+        <button class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="guide-schedule" data-guide-tab="guide-schedule">Schedule</button>
+        <button class="guide-tab" type="button" role="tab" aria-selected="false" aria-controls="guide-bookings" data-guide-tab="guide-bookings">Bookings</button>
         <div class="guide-menu">
           <button class="btn btn-secondary guide-menu-toggle" type="button" id="guide-menu-toggle" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
           <div class="guide-menu-dropdown" id="guide-menu-dropdown" hidden>
@@ -36,22 +38,17 @@
       <section id="guide-overview" class="hero guide-tab-panel" role="tabpanel">
         <div class="hero-copy">
           <p class="eyebrow">Guide portal</p>
-          <h1>Stay organized with bookings, arrivals, and daily tour plans.</h1>
+          <h1>Your tours, all in one place.</h1>
           <p class="hero-text">
-            Guides can review upcoming requests, confirm visitor arrival lists, and keep each tour on track.
+            Review your schedule, find visitor details, and prepare for your next tour.
           </p>
           <div class="hero-actions">
-            <button class="btn btn-primary" type="button" data-guide-tab-target="guide-schedule">New bookings</button>
+            <button class="btn btn-primary" type="button" data-guide-tab-target="guide-schedule">View my schedule</button>
             <button class="btn btn-secondary" type="button" data-guide-tab-target="guide-bookings">Booking history</button>
           </div>
         </div>
 
         <div class="hero-card">
-          <div class="hero-card-top">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
           <div class="mock-map">
             <div class="route-preview" aria-live="polite">
               <span class="route-preview-label">Next tour</span>
@@ -88,7 +85,7 @@
         </article>
       </section>
 
-      <section id="guide-schedule" class="section section-alt guide-tab-panel" hidden>
+      <section id="guide-schedule" class="section section-alt guide-tab-panel" role="tabpanel" hidden>
         <div class="section-heading">
           <p class="eyebrow">Daily schedule</p>
           <h2>Plan the day around your assigned tours.</h2>

@@ -12,18 +12,49 @@
     }
   }
 
-  function getAttractionPopup(attraction, coords) {
-    const trail = attraction.trail || attraction.route;
-    const mainImage = getAttractionImages(attraction)[0];
-    return `
-      <article class="map-popup">
-        ${mainImage ? `<img src="${escapeHtml(mainImage)}" alt="${escapeHtml(attraction.name)}" />` : ''}
-        <h3>${escapeHtml(attraction.name)}</h3>
-        <p>${escapeHtml(attraction.description || 'Explore this attraction.')}</p>
-        <p><strong>Fee:</strong> ${escapeHtml(attraction.fee || 'Contact admin')}</p>
-        ${trail ? `<p><strong>Trail or route:</strong> ${escapeHtml(trail)}</p>` : ''}
-      </article>
-    `;
+  function createAttractionPopup(attraction) {
+    const images = getAttractionImages(attraction);
+    const popup = document.createElement('div');
+    popup.className = 'map-popup';
+    if (!images.length) {
+      const message = document.createElement('p');
+      message.textContent = 'No images available for this attraction.';
+      popup.appendChild(message);
+      return popup;
+    }
+
+    let index = 0;
+    const image = document.createElement('img');
+    image.src = images[index];
+    image.alt = attraction.name;
+    popup.appendChild(image);
+
+    if (images.length > 1) {
+      const controls = document.createElement('div');
+      controls.className = 'map-photo-controls';
+      const previous = document.createElement('button');
+      const next = document.createElement('button');
+      const counter = document.createElement('span');
+      previous.type = next.type = 'button';
+      previous.textContent = '‹';
+      next.textContent = '›';
+      previous.setAttribute('aria-label', 'Previous photo');
+      next.setAttribute('aria-label', 'Next photo');
+      counter.setAttribute('aria-live', 'polite');
+      function showPhoto(nextIndex) {
+        index = (nextIndex + images.length) % images.length;
+        image.src = images[index];
+        counter.textContent = `${index + 1} / ${images.length}`;
+      }
+      previous.addEventListener('click', () => showPhoto(index - 1));
+      next.addEventListener('click', () => showPhoto(index + 1));
+      counter.textContent = `1 / ${images.length}`;
+      controls.appendChild(previous);
+      controls.appendChild(counter);
+      controls.appendChild(next);
+      popup.appendChild(controls);
+    }
+    return popup;
   }
 
   function renderMapFeature(state) {
@@ -56,26 +87,28 @@
     }).addTo(map);
 
     const bounds = [];
+    const markers = [];
     state.attractions.forEach((attraction) => {
       const coords = getAttractionCoords(attraction);
       bounds.push(coords);
       const marker = window.L.marker(coords).addTo(map);
       marker.bindTooltip(attraction.name);
-      marker.bindPopup(getAttractionPopup(attraction, coords));
+      marker.bindPopup(createAttractionPopup(attraction), { maxWidth: 340 });
       marker.on('click', () => selectAttraction(attraction, marker));
+      markers.push(marker);
     });
     if (bounds.length > 1) map.fitBounds(bounds, { padding: [30, 30] });
 
     const pinPanel = document.createElement('div');
     pinPanel.className = 'map-pin-panel';
     pinPanel.innerHTML = '<strong class="map-pin-panel-title">All attraction pins</strong>';
-    state.attractions.forEach((attraction) => {
+    state.attractions.forEach((attraction, index) => {
       const pin = document.createElement('button');
       pin.type = 'button';
       pin.className = 'map-pin-button';
       pin.setAttribute('aria-label', `Show ${attraction.name} on the map`);
       pin.innerHTML = `<span class="map-pin-icon" aria-hidden="true">📍</span><span>${escapeHtml(attraction.name)}</span>`;
-      pin.addEventListener('click', () => selectAttraction(attraction));
+      pin.addEventListener('click', () => selectAttraction(attraction, markers[index]));
       pinPanel.appendChild(pin);
     });
     mapElement.appendChild(pinPanel);
@@ -91,12 +124,19 @@
         button.classList.toggle('active', button.textContent.includes(attraction.name));
       });
       if (detailsElement) {
+        const trail = attraction.trail || attraction.route;
         detailsElement.innerHTML = `
-          ${getAttractionPopup(attraction, coords)}
-          <p class="map-pin-note">Pinned location: ${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</p>
+          <h3>${escapeHtml(attraction.name)}</h3>
+          <p>${escapeHtml(attraction.description || 'Explore this attraction.')}</p>
+          <p><strong>Fee:</strong> ${escapeHtml(attraction.fee || 'Contact admin')}</p>
+          ${trail ? `<p><strong>Trail or route:</strong> ${escapeHtml(trail)}</p>` : ''}
           <button class="btn btn-secondary map-view-more" type="button">View more</button>
         `;
         detailsElement.querySelector('.map-view-more')?.addEventListener('click', () => {
+          if (!document.getElementById('user-attractions')) {
+            window.location.href = 'user.html';
+            return;
+          }
           showUserTab('user-attractions');
           document.getElementById('selected-attraction-name')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });

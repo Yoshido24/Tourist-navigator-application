@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Apply for a Montalban resort owner account." />
+    <title>Resort Owner Application | Montalban Navigator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../frontend/desktop/css/portal.css" />
+  </head>
+  <body class="resort-manager-portal">
+    <header class="topbar">
+      <a class="brand" href="../web/index.html"><span>Montalban Navigator</span></a>
+      <nav class="nav-links" aria-label="Resort owner navigation">
+        <a href="../mobile/partner-access.html">Partner portal</a>
+        <a href="resort-manager.html">Sign in</a>
+      </nav>
+    </header>
+    <main class="page-shell">
+      <section class="partner-auth-layout">
+        <div class="partner-auth-intro">
+          <p class="eyebrow">Resort owner application</p>
+          <h1>Bring your resort to Montalban Navigator.</h1>
+          <p>Share your details to apply for an owner account. Add services after your account is approved.</p>
+          <div class="partner-info">
+            <strong>What happens next?</strong>
+            <p>The Municipal Admin reviews your account. Once approved, add your services and submit your listing for barangay review.</p>
+            <a href="resort-manager.html">Already have an account? Sign in</a>
+          </div>
+        </div>
+        <form id="resort-signup" class="booking-form dashboard-card partner-auth-card">
+          <h2>Apply for an owner account</h2>
+          <label for="owner-name">Your name</label>
+          <input id="owner-name" name="name" autocomplete="name" required maxlength="120" />
+          <label for="owner-contact">Contact number</label>
+          <input id="owner-contact" name="contact" autocomplete="tel" required maxlength="30" />
+          <label for="owner-signup-email">Email</label>
+          <input id="owner-signup-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+          <label for="owner-signup-password">Password (at least 8 characters)</label>
+          <input id="owner-signup-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required />
+          <label for="signup-resort-name">Resort name</label>
+          <input id="signup-resort-name" name="resortName" required maxlength="120" />
+          <label for="signup-barangay">Barangay</label>
+          <select id="signup-barangay" name="barangayId" required></select>
+          <label for="signup-resort-address">Address</label>
+          <input id="signup-resort-address" name="address" maxlength="240" />
+          <label for="signup-resort-description">Description</label>
+          <textarea id="signup-resort-description" name="description" rows="3" maxlength="2000"></textarea>
+          <label class="checkbox-row" for="owner-terms">
+            <input id="owner-terms" name="termsAccepted" type="checkbox" required />
+            <span>I agree to the <a href="../web/legal.html#terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="../web/legal.html#privacy" target="_blank" rel="noopener">Privacy Notice</a>.</span>
+          </label>
+          <button class="btn btn-primary" type="submit">Submit owner application</button>
+          <p id="owner-signup-message" class="success-message" role="status" hidden></p>
+          <p id="owner-signup-error" class="success-message error-message" role="alert" hidden></p>
+          <p class="partner-auth-switch">Already have an account? <a href="resort-manager.html">Sign in</a>.</p>
+        </form>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/desktop/js/resort-manager.js"></script>
+  </body>
+</html>

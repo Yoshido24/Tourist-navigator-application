@@ -1,0 +1,347 @@
+.portal-access .access-topbar {
+  max-width: 1180px;
+  margin: 0 auto;
+  gap: 1rem;
+}
+
+.portal-access .access-back,
+.portal-access .access-help a {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.portal-access .access-shell {
+  width: min(100% - 3rem, 960px);
+  margin: 0 auto;
+  padding: clamp(2rem, 7vw, 5rem) 0;
+}
+
+.portal-access .access-intro {
+  max-width: 680px;
+  margin-bottom: 2rem;
+}
+
+.portal-access .access-intro h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.portal-access .access-intro > p:last-child,
+.portal-access .access-card p,
+.portal-access .access-help {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.portal-access .access-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.portal-access .access-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(20, 33, 61, 0.06);
+}
+
+.portal-access .access-card-label {
+  color: var(--primary-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portal-access .access-card h2 {
+  margin: 0.65rem 0 0;
+  font-size: 1.4rem;
+}
+
+.portal-access .access-card p {
+  flex: 1;
+  margin: 0.65rem 0 1.5rem;
+}
+
+.portal-access .access-card .btn {
+  text-align: center;
+}
+
+.portal-access .access-help {
+  margin-top: 2rem;
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .topbar {
+  background: #fff;
+  border: 1px solid rgba(20, 33, 61, 0.08);
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 20px rgba(20, 33, 61, 0.04);
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .section-alt {
+  background: #fff;
+  border: 1px solid rgba(20, 33, 61, 0.08);
+  box-shadow: 0 12px 30px rgba(20, 33, 61, 0.04);
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .section-heading h1,
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .section-heading h2 {
+  letter-spacing: -0.025em;
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .dashboard-card {
+  border-color: rgba(20, 33, 61, 0.1);
+  box-shadow: 0 12px 28px rgba(20, 33, 61, 0.06);
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .btn {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .btn-secondary:hover {
+  background: #eef4ff;
+}
+
+.guide-mobile-portal .mock-map {
+  background: linear-gradient(145deg, #eef4ff, #f8fafc);
+}
+
+.user-responsive-portal .map-attraction-details {
+  background: #fff;
+  border: 1px solid rgba(20, 33, 61, 0.1);
+}
+
+.access-back {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.partner-auth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: start;
+  padding: clamp(2rem, 6vw, 4.5rem) 0;
+}
+
+.partner-auth-intro h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.partner-auth-intro > p:not(.eyebrow),
+.partner-info p,
+.partner-auth-card > p,
+.partner-auth-switch {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.partner-info {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: #eef4ff;
+  border: 1px solid rgba(20, 33, 61, 0.08);
+  border-radius: 16px;
+}
+
+.partner-info a,
+.partner-auth-switch a {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.partner-auth-card {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.partner-auth-card h2,
+.partner-auth-card > p {
+  margin: 0;
+}
+
+.partner-auth-card .partner-auth-switch {
+  margin-top: 0.75rem;
+}
+
+.partner-dashboard-heading {
+  margin-bottom: 1.5rem;
+}
+
+.partner-dashboard-heading h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  letter-spacing: -0.03em;
+}
+
+.partner-guide-auth .hero-copy h1,
+.guide-mobile-portal .hero-copy h1 {
+  letter-spacing: -0.035em;
+}
+
+.partner-guide-auth .hero-card,
+.partner-guide-auth .guide-auth-choice-card,
+.guide-mobile-portal .hero-card {
+  border: 1px solid rgba(20, 33, 61, 0.1);
+  box-shadow: 0 12px 30px rgba(20, 33, 61, 0.06);
+}
+
+.guide-mobile-portal .route-preview-label {
+  writing-mode: horizontal-tb;
+  transform: none;
+}
+
+.guide-mobile-portal .route-preview {
+  display: grid;
+  gap: 0.65rem;
+}
+
+:is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) :is(a, button, input, select, textarea):focus-visible,
+.portal-access a:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .portal-access .access-topbar {
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+  }
+
+  .portal-access .access-shell {
+    width: calc(100% - 2.5rem);
+    padding: 2.5rem 0;
+  }
+
+  .portal-access .access-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-access .access-card .btn {
+    width: 100%;
+  }
+
+  :is(.user-responsive-portal, .admin-desktop-only, .guide-mobile-portal, .barangay-admin-portal, .resort-manager-portal) .topbar {
+    border-radius: 0 0 16px 16px;
+  }
+
+  .partner-auth-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 2rem 0;
+  }
+
+  .guide-mobile-portal .guide-tabs {
+    justify-content: flex-start;
+  }
+}
+
+.sidebar-toggle {
+  display: none;
+}
+
+.navigation-enhanced {
+  padding-right: 16rem;
+}
+
+.navigation-enhanced .topbar > .nav-links {
+  position: fixed;
+  z-index: 1000;
+  inset: 0 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  width: 16rem;
+  margin: 0;
+  padding: 1.25rem 0.8rem;
+  overflow-y: auto;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 20px rgba(20, 33, 61, 0.06);
+}
+
+.navigation-enhanced .topbar > .nav-links > :is(a, button) {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 12px;
+  color: var(--primary-dark);
+  text-align: left;
+}
+
+.navigation-enhanced .topbar > .nav-links > [hidden] {
+  display: none;
+}
+
+.navigation-enhanced .topbar > .nav-links > .sidebar-signout {
+  margin-top: auto;
+}
+
+.navigation-enhanced .guide-menu-dropdown {
+  position: static;
+  box-shadow: none;
+}
+
+@media (max-width: 1023px) {
+  .navigation-enhanced {
+    padding-right: 0;
+  }
+
+  .navigation-enhanced .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin-left: auto;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--primary-dark);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .navigation-enhanced .topbar > .nav-links {
+    display: none;
+    top: 0;
+    width: min(16rem, 85vw);
+    padding-top: 4.5rem;
+    box-shadow: -8px 8px 24px rgba(20, 33, 61, 0.18);
+  }
+
+  .navigation-enhanced .sidebar-toggle[aria-expanded="true"] {
+    position: fixed;
+    z-index: 1001;
+    top: 0.75rem;
+    right: 1rem;
+  }
+
+  .navigation-enhanced .topbar > .nav-links.sidebar-open {
+    display: flex;
+  }
+
+  :is(.admin-desktop-only, .barangay-admin-portal).navigation-enhanced {
+    padding-right: clamp(7rem, 32vw, 16rem);
+  }
+
+  :is(.admin-desktop-only, .barangay-admin-portal).navigation-enhanced .topbar > .nav-links {
+    display: flex;
+    width: clamp(7rem, 32vw, 16rem);
+    padding-top: 1.25rem;
+  }
+}

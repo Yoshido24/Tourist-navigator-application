@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Manage your resort listing, service fees, and tourist requests." />
+    <title>Resort Owner | Montalban Navigator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../frontend/desktop/css/portal.css" />
+  </head>
+  <body class="resort-manager-portal">
+    <header class="topbar">
+      <a class="brand" href="../web/user.html"><span>Montalban Navigator</span></a>
+      <nav class="nav-links" aria-label="Resort owner navigation">
+        <a href="../mobile/partner-access.html">Partner portal</a>
+        <a href="../web/index.html">Home</a>
+        <button id="resort-signout" class="btn btn-secondary sidebar-signout" type="button" hidden>Sign out</button>
+      </nav>
+    </header>
+    <main class="page-shell">
+      <section id="resort-auth-panel" class="partner-auth-layout">
+        <div class="partner-auth-intro">
+          <p class="eyebrow">Resort owner portal</p>
+          <h1>Manage your resort with confidence.</h1>
+          <p>Keep your listing up to date and respond to visitor requests in one place.</p>
+          <div class="partner-info">
+            <strong>New to Montalban Navigator?</strong>
+            <p>Apply for an owner account. The Municipal Admin reviews applications before access is granted.</p>
+            <a href="resort-signup.html">Apply for an account</a>
+          </div>
+        </div>
+          <form id="resort-signin" class="booking-form dashboard-card partner-auth-card">
+            <p class="eyebrow">Welcome back</p>
+            <h2>Sign in</h2>
+            <p>Use your owner account email and password.</p>
+            <label for="owner-login-email">Email</label>
+            <input id="owner-login-email" type="email" autocomplete="username" required />
+            <label for="owner-login-password">Password</label>
+            <input id="owner-login-password" type="password" autocomplete="current-password" required />
+            <button class="btn btn-primary" type="submit">Sign in</button>
+            <p id="owner-login-error" class="success-message error-message" role="alert" hidden></p>
+            <p class="partner-auth-switch">Need an account? <a href="resort-signup.html">Apply here</a>.</p>
+          </form>
+      </section>
+      <section id="resort-dashboard" class="section" hidden>
+        <div class="partner-dashboard-heading">
+          <p class="eyebrow">Resort operations</p>
+          <h1 id="owner-dashboard-title">Your resort</h1>
+          <p id="owner-account-status" role="status"></p>
+        </div>
+        <article class="dashboard-card">
+          <h2>Listing and services</h2>
+          <div id="owner-listing"></div>
+          <button id="owner-edit-listing" class="btn btn-secondary" type="button" hidden>Edit approved listing</button>
+          <form id="owner-listing-form" class="booking-form" hidden>
+            <label for="owner-listing-name">Resort name</label>
+            <input id="owner-listing-name" name="name" required maxlength="120" />
+            <label for="owner-listing-barangay">Barangay</label>
+            <select id="owner-listing-barangay" name="barangayId" required></select>
+            <label for="owner-listing-address">Address</label>
+            <input id="owner-listing-address" name="address" maxlength="240" />
+            <label for="owner-listing-description">Description</label>
+            <textarea id="owner-listing-description" name="description" rows="3" maxlength="2000"></textarea>
+            <h3>Services and fees</h3>
+            <div id="owner-service-rows"></div>
+            <button class="btn btn-secondary" type="button" data-add-service="owner-service-rows">Add another service</button>
+            <button class="btn btn-primary" type="submit">Submit changes for review</button>
+            <button id="owner-cancel-edit" class="btn btn-secondary" type="button">Cancel</button>
+            <p id="owner-listing-error" class="success-message error-message" role="alert" hidden></p>
+          </form>
+        </article>
+        <div class="section-heading">
+          <h2>Incoming booking requests</h2>
+          <p>Confirm availability yourself; payment and live room availability are not handled here.</p>
+        </div>
+        <div id="owner-bookings" class="dashboard-grid"></div>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../frontend/shared/config/supabase.public.js"></script>
+    <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/shared/js/navigation.js"></script>
+    <script src="../../frontend/desktop/js/resort-manager.js"></script>
+  </body>
+</html>

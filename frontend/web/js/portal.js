@@ -111,6 +111,7 @@ function setupUserTabs() {
 async function renderApp(state) {
   window.UserAttractionsFeature?.render(state);
   window.UserBookingFeature?.setup(state);
+  window.UserResortsFeature?.render(state);
   window.UserShopFeature?.render(state);
   setupUserTabs();
   window.UserMapFeature?.render(state);

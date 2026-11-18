@@ -14,46 +14,46 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
     <link rel="stylesheet" href="../../frontend/web/css/portal.css" />
   </head>
-  <body>
-    <header class="topbar">
-      <a class="brand" href="index.html">
-        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/666495367_942507755196296_8478441648281040178_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx600x600&amp;ctp=s600x600&amp;_nc_cat=104&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeFJjOkvwR1LTBcd-ukCdIVin81sb4V4AfGfzWxvhXgB8cq9GVJY6gVCoJUQxuNEYvdSiGuJhuqHvjXrotFk5OZK&amp;_nc_ohc=lYsUDrgVYg8Q7kNvwH_r7u3&amp;_nc_oc=AdqAFLsjE4bM_qGSNWnbA-u1DjX0TzTb1eW-nfbzUhzKRBVsRPW_NY9qt4WYZjhoudk&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=0e37PKDMBWv1g8j56QbHLg&amp;_nc_ss=7b2a8&amp;oh=00_AQIrJjeoGqSPLZLIc2tra0KL0-KcRbzaFlG50hJ40vPC4w&amp;oe=6ABB0C63" alt="Montalban Tourism logo" />
-        <img class="brand-logo" src="https://scontent.fmnl45-1.fna.fbcdn.net/v/t39.30808-6/273650543_313668970801003_3153621589256724843_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx960x960&amp;ctp=s960x960&amp;_nc_cat=111&amp;_nc_map=urlgen_bucketless&amp;ccb=1-7&amp;_nc_sid=6ee11a&amp;_nc_eui2=AeF67zClS5dA84yY7EJQ9KEjAi2qRGiNL3cCLapEaI0vd-BygJRZBqMXu84p5-srsXtYrT6tkkYpxwJFoM-EScD1&amp;_nc_ohc=142XgEnnH3sQ7kNvwEkl0Ca&amp;_nc_oc=AdrzETOBBKhtskP0ICZtbduAqfUp9hcAupRc0KoMh7MRTFFCYG30vRG-wK0-T-F7ugM&amp;_nc_zt=23&amp;_nc_ht=scontent.fmnl45-1.fna&amp;_nc_gid=A40C89n_t5xeSxPnP_PpoQ&amp;_nc_ss=7b2a8&amp;oh=00_AQKLdXmsvIZWCiq8pwTh5cp7xQeFh71sqruA5oAg2aMUpA&amp;oe=6ABB0C8F" alt="Montalban logo" />
-        <span>Montalban Navigator</span>
-      </a>
-      <nav class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#portals">Portals</a>
-        <a href="#maps">Maps</a>
-      </nav>
-    </header>
+  <body class="landing-a">
+    <div class="landing-hero">
+      <header class="topbar landing-topbar">
+        <a class="brand" href="index.html">
+          <img class="brand-logo" src="../../assets/logos/tourism-logo.png" alt="Montalban Tourism logo" />
+          <img class="brand-logo" src="../../assets/logos/montalban-logo.png" alt="Montalban logo" />
+          <span>Montalban Navigator</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../mobile/partner-access.html">Partner portal</a>
+          <a href="../desktop/admin-access.html">Admin portal</a>
+        </nav>
+      </header>
+
+      <div class="landing-hero-content">
+        <p class="eyebrow">Tourist navigation system</p>
+        <h1>Explore Montalban.</h1>
+        <p class="hero-text">
+          Discover attractions, see them on the map, and book a local guide for your visit.
+        </p>
+        <a class="btn btn-primary landing-cta" href="user.html">Start exploring</a>
+      </div>
+    </div>
 
     <main class="page-shell">
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Tourist navigation system</p>
-          <h1>A simple way to explore Montalban and plan a visit.</h1>
-          <p class="hero-text">
-            This system helps tourists discover attractions, view location details, and book a guide
-            in a clear and easy-to-use experience.
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="user.html">Open user portal</a>
-            <a class="btn btn-primary" href="../mobile/guide.html">Open guide portal</a>
-            <a class="btn btn-secondary" href="../desktop/admin.html">Open admin portal</a>
-          </div>
+      <section class="section landing-map-section">
+        <div class="section-heading">
+          <p class="eyebrow">Attraction map</p>
+          <h2>Find attractions near you.</h2>
         </div>
-
         <div class="hero-card" aria-label="Map preview">
-          <div class="hero-card-top">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
-          <div id="map" class="map-view"></div>
-          <div id="attraction-details" class="mock-details">
+          <div id="tourist-map" class="map-view map-view-primary" aria-label="Map of tourist attractions"></div>
+          <div id="tourist-map-details" class="map-attraction-details" aria-live="polite">
             <h3>Loading attractions…</h3>
             <p>Select a marker to view details.</p>
           </div>
@@ -61,34 +61,48 @@
       </section>
 
       <section class="section">
-        <div class="feature-grid">
+        <div class="section-heading">
+          <p class="eyebrow">How it works</p>
+          <h2>Plan your trip in three steps.</h2>
+        </div>
+        <div class="feature-grid landing-steps">
           <article class="card">
-            <h3>Explore places</h3>
-            <p>View attractions and travel points quickly from a simple map-based interface.</p>
+            <span class="landing-step-number">1</span>
+            <h3>Pick a place</h3>
+            <p>Browse attractions on the map and read what to expect before you go.</p>
           </article>
           <article class="card">
-            <h3>Book a visit</h3>
-            <p>Tourists can check details and reserve a guided experience without confusion.</p>
+            <span class="landing-step-number">2</span>
+            <h3>Book a guide</h3>
+            <p>Choose your date and group size, then reserve a local guide.</p>
           </article>
           <article class="card">
-            <h3>Manage content</h3>
-            <p>Guides and admins can update listings, schedules, and visitor information.</p>
+            <span class="landing-step-number">3</span>
+            <h3>Enjoy the trip</h3>
+            <p>Get directions to the starting point and enjoy Montalban.</p>
           </article>
         </div>
       </section>
     </main>
 
     <footer class="footer">
-      <p>© <span id="year"></span> Montalban Navigator. Designed for local discovery.</p>
+      <p>© <span id="year"></span> Municipal Tourism and Cultural Affairs Office, Montalban, Rizal.</p>
+      <p><a href="../desktop/admin-access.html">Admin portal</a> | <a href="../mobile/partner-access.html">Partner portal</a></p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
     <script src="../../frontend/web/features/attractions/attractions.js"></script>
     <script src="../../frontend/web/features/booking/booking.js"></script>
     <script src="../../frontend/web/features/directions/directions.js"></script>
     <script src="../../frontend/web/features/shop/shop.js"></script>
+    <script src="../../frontend/web/features/map/map.js"></script>
     <script src="../../frontend/web/js/portal.js"></script>
 
   </body>

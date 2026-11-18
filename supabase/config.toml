@@ -4,6 +4,14 @@
 # working directory name when running `supabase init`.
 project_id = "Tourist-navigator-application"
 
+# The public handler verifies reCAPTCHA before writing with the service role.
+[functions.secure-api]
+verify_jwt = false
+
+# Public manager registration is validated here; staff actions require a verified admin session.
+[functions.local-accounts]
+verify_jwt = false
+
 [api]
 enabled = true
 # Port to use for the API URL.

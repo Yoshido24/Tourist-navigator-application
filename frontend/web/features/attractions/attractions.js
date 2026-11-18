@@ -1,5 +1,12 @@
 // Tourist attraction discovery: list, detail panel, and Book form sync
 (function () {
+  let activeCategory = 'all';
+
+  function filterAttractionsByCategory(attractions, category) {
+    if (category === 'all') return attractions;
+    return attractions.filter((attraction) => String(attraction.category || '').trim().toLowerCase() === category);
+  }
+
   function renderAttractionsFeature(state) {
     const attractionsList = document.getElementById('attraction-selector');
     const selectedName = document.getElementById('selected-attraction-name');
@@ -12,17 +19,37 @@
     const placeSelect = document.getElementById('place');
 
     if (attractionsList) {
-      attractionsList.innerHTML = '';
-      state.attractions.forEach((attraction) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'attraction-option';
-        button.innerHTML = `
-          <span>${escapeHtml(attraction.name)}</span>
-          <strong>${escapeHtml(attraction.fee || '')}</strong>
-        `;
-        button.addEventListener('click', () => selectAttraction(attraction));
-        attractionsList.appendChild(button);
+      const renderList = () => {
+        attractionsList.innerHTML = '';
+        const visibleAttractions = filterAttractionsByCategory(state.attractions, activeCategory);
+        visibleAttractions.forEach((attraction) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'attraction-option';
+          button.innerHTML = `
+            <span>${escapeHtml(attraction.name)}</span>
+            <strong>${escapeHtml(attraction.fee || '')}</strong>
+          `;
+          button.addEventListener('click', () => selectAttraction(attraction));
+          attractionsList.appendChild(button);
+        });
+        if (!visibleAttractions.length) {
+          attractionsList.innerHTML = '<p class="empty-state">No attractions in this category yet.</p>';
+        }
+      };
+      renderList();
+      document.querySelectorAll('[data-attraction-category]').forEach((filter) => {
+        if (filter.dataset.categoryFilterBound === 'true') return;
+        filter.dataset.categoryFilterBound = 'true';
+        filter.addEventListener('click', () => {
+          activeCategory = filter.dataset.attractionCategory;
+          document.querySelectorAll('[data-attraction-category]').forEach((item) => {
+            const active = item === filter;
+            item.classList.toggle('is-active', active);
+            item.setAttribute('aria-pressed', String(active));
+          });
+          renderList();
+        });
       });
     }
 
@@ -118,6 +145,7 @@
 
   window.UserAttractionsFeature = {
     render: renderAttractionsFeature,
-    select: null
+    select: null,
+    filterByCategory: filterAttractionsByCategory
   };
 })();

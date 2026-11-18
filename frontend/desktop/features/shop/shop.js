@@ -35,19 +35,44 @@
     form.dataset.featureBound = 'true';
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (form.dataset.saving === 'true') return;
+      form.dataset.saving = 'true';
       const data = new FormData(form);
-      await updateState((currentState) => ({
-        ...currentState,
-        shopProducts: [{
-          id: `shop-${Date.now()}`,
-          name: data.get('name') || '',
-          price: data.get('price') || '',
-          description: data.get('description') || '',
-          availability: data.get('availability') || '',
-          image: data.get('image') || ''
-        }, ...(currentState.shopProducts || [])]
-      }));
-      form.reset();
+      const product = {
+        id: `shop-${window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
+        name: data.get('name') || '',
+        price: data.get('price') || '',
+        description: data.get('description') || '',
+        availability: data.get('availability') || '',
+        image: data.get('image') || ''
+      };
+      const message = document.getElementById('shop-product-message');
+      try {
+        if (USE_SUPABASE) {
+          const { error } = await supabaseClient.from('shop_products').insert(product);
+          if (error) {
+            message.textContent = `Product was not saved: ${error.message}`;
+            message.hidden = false;
+            return;
+          }
+          form.reset();
+          message.textContent = 'Product published.';
+          message.hidden = false;
+          try {
+            appState = await loadStateFromSupabase();
+            await renderApp(appState);
+          } catch (error) {
+            message.textContent = `Product published, but the list could not refresh: ${error.message}`;
+          }
+        } else {
+          await updateState((currentState) => ({
+            ...currentState, shopProducts: [product, ...(currentState.shopProducts || [])]
+          }));
+          form.reset();
+        }
+      } finally {
+        delete form.dataset.saving;
+      }
     });
   }
 

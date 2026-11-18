@@ -1145,3 +1145,69 @@ img {
     height: 190px;
   }
 }
+
+/* Guide login, sign-up and access pages */
+.guide-auth-switch {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+.guide-auth-switch a {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.hero-card .booking-form {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.guide-application-layout .guide-auth-switch {
+  grid-column: 1 / -1;
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea {
+  min-height: 48px;
+}
+
+.booking-form .btn {
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .guide-application-layout,
+  .hero:has(#guide-auth-login-form) {
+    gap: 1.2rem;
+  }
+
+  .hero:has(#guide-auth-login-form) .hero-card,
+  .guide-application-layout .hero-card {
+    padding: 1.2rem;
+  }
+
+  .guide-auth-choice-card .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero h1 {
+    font-size: 1.65rem;
+  }
+
+  .booking-form input,
+  .booking-form select,
+  .booking-form textarea {
+    font-size: 16px;
+  }
+
+  .guide-interview-fields {
+    min-width: 0;
+  }
+}

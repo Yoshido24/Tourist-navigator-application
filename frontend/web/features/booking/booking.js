@@ -1,11 +1,12 @@
 // Tourist booking submission feature. Bookings go through the secure-api Edge Function,
 // which checks reCAPTCHA and the agreement before saving.
 (function () {
-  let captchaWidgetId = null;
+  const captchaEnabled = typeof RECAPTCHA_ENABLED !== 'undefined' && RECAPTCHA_ENABLED;
+  const captchaWidgetIds = new Map();
   let captchaScriptPromise = null;
 
   function loadCaptcha() {
-    if (typeof RECAPTCHA_SITE_KEY === 'undefined' || RECAPTCHA_SITE_KEY.startsWith('REPLACE_')) {
+    if (!captchaEnabled || typeof RECAPTCHA_SITE_KEY === 'undefined' || RECAPTCHA_SITE_KEY.startsWith('REPLACE_')) {
       return Promise.resolve(null);
     }
     if (!captchaScriptPromise) {
@@ -21,19 +22,31 @@
     return captchaScriptPromise;
   }
 
-  async function renderCaptcha() {
-    const container = document.getElementById('booking-captcha');
-    if (!container || captchaWidgetId !== null) return;
+  async function renderCaptcha(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container || captchaWidgetIds.has(containerId)) return;
+    if (!captchaEnabled) return;
     if (typeof RECAPTCHA_SITE_KEY === 'undefined' || RECAPTCHA_SITE_KEY.startsWith('REPLACE_')) {
       container.textContent = 'Human verification is not configured yet. Set RECAPTCHA_SITE_KEY in supabase.public.js.';
       return;
     }
     try {
       const grecaptcha = await loadCaptcha();
-      if (grecaptcha) captchaWidgetId = grecaptcha.render(container, { sitekey: RECAPTCHA_SITE_KEY });
+      if (grecaptcha) captchaWidgetIds.set(containerId, grecaptcha.render(container, { sitekey: RECAPTCHA_SITE_KEY }));
     } catch (error) {
       console.warn('Unable to load human verification.', error);
     }
+  }
+
+  async function getCaptchaToken(containerId) {
+    await renderCaptcha(containerId);
+    const widgetId = captchaWidgetIds.get(containerId);
+    return captchaEnabled && widgetId !== undefined ? window.grecaptcha.getResponse(widgetId) : '';
+  }
+
+  function resetCaptcha(containerId) {
+    const widgetId = captchaWidgetIds.get(containerId);
+    if (widgetId !== undefined) window.grecaptcha.reset(widgetId);
   }
 
   function setupBookingFeature(state) {
@@ -41,7 +54,7 @@
     if (!form || form.dataset.featureBound === 'true') return;
 
     form.dataset.featureBound = 'true';
-    renderCaptcha();
+    renderCaptcha('booking-captcha');
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -63,20 +76,29 @@
         fail('Please accept the Terms of Use and Privacy Notice.');
         return;
       }
-      const captchaToken = captchaWidgetId !== null ? window.grecaptcha.getResponse(captchaWidgetId) : '';
-      if (!captchaToken) {
+      const booking = createBookingFromForm(form);
+      const selectedAttraction = appState.attractions.find((item) => item.id === booking.attractionId);
+      if (!selectedAttraction?.barangay_id) {
+        fail('Bookings are paused until this attraction has an assigned barangay.');
+        return;
+      }
+      const captchaToken = await getCaptchaToken('booking-captcha');
+      if (captchaEnabled && !captchaToken) {
         fail('Please complete the human verification.');
         return;
       }
 
-      const booking = createBookingFromForm(form);
-      const selectedAttraction = appState.attractions.find((item) => item.id === booking.attractionId);
       submitButton.disabled = true;
       const { data, error } = await supabaseClient.functions.invoke('secure-api', {
-        body: { action: 'create-booking', booking, captchaToken, termsAccepted: true }
+        body: {
+          action: 'create-booking',
+          booking,
+          ...(captchaEnabled ? { captchaToken } : {}),
+          termsAccepted: true
+        }
       });
       submitButton.disabled = false;
-      if (captchaWidgetId !== null) window.grecaptcha.reset(captchaWidgetId);
+      resetCaptcha('booking-captcha');
 
       if (error || !data?.ok) {
         const details = await error?.context?.json?.().catch(() => null);
@@ -93,6 +115,10 @@
   }
 
   window.UserBookingFeature = {
-    setup: setupBookingFeature
+    setup: setupBookingFeature,
+    renderCaptcha,
+    getCaptchaToken,
+    resetCaptcha,
+    captchaEnabled
   };
 })();

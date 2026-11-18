@@ -758,6 +758,122 @@ img {
   margin-bottom: 0.8rem;
 }
 
+/* Landing page (index.html) */
+.landing-a .landing-hero {
+  position: relative;
+  min-height: min(82vh, 640px);
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background-color: #0b4f4a;
+  background-image:
+    linear-gradient(180deg, rgba(8, 56, 52, 0.55) 0%, rgba(8, 56, 52, 0.85) 100%),
+    url("../../../assets/hero.jpg"),
+    linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+  background-size: cover;
+  background-position: center;
+  border-radius: 0 0 36px 36px;
+}
+
+.landing-a .landing-topbar {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.landing-a .landing-topbar .brand,
+.landing-a .landing-topbar .nav-links a {
+  color: #fff;
+}
+
+.landing-a .landing-topbar .brand-logo {
+  background: #fff;
+}
+
+.landing-a .landing-hero-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+}
+
+.landing-a .landing-hero-content .eyebrow {
+  color: #99f6e4;
+}
+
+.landing-a .landing-hero-content h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2.6rem, 7vw, 4.8rem);
+  line-height: 1.05;
+}
+
+.landing-a .landing-hero-content .hero-text {
+  max-width: 34rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.15rem;
+}
+
+.landing-a .landing-cta {
+  margin-top: 1.4rem;
+  padding: 1rem 2.2rem;
+  font-size: 1.1rem;
+  background: #fff;
+  color: var(--primary-dark);
+}
+
+.landing-a .landing-map-section {
+  padding-top: 2.5rem;
+}
+
+.landing-a .landing-map-section .hero-card {
+  padding: 1rem;
+}
+
+.landing-step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin-bottom: 0.6rem;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+}
+
+.landing-steps .card {
+  padding: 1.4rem;
+}
+
+@media (max-width: 640px) {
+  .landing-a .landing-hero {
+    min-height: 74vh;
+    border-radius: 0 0 24px 24px;
+  }
+
+  .landing-a .landing-topbar .brand span {
+    display: none;
+  }
+
+  .landing-a .landing-hero-content {
+    padding: 1.5rem 1.2rem 3rem;
+  }
+
+  .landing-a .landing-cta {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.book-trip-btn {
+  width: 100%;
+  margin-top: 1rem;
+}
+
 .booking-side-stack {
   display: grid;
   gap: 1rem;
@@ -799,7 +915,7 @@ img {
 
 .tourist-map-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: stretch;
 }
@@ -826,6 +942,33 @@ img {
   margin: 0.75rem 0;
   border-radius: 14px;
   object-fit: cover;
+}
+
+.leaflet-popup-content .map-popup {
+  width: min(280px, calc(100vw - 90px));
+  max-width: 100%;
+}
+
+.leaflet-popup-content .map-popup img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+}
+
+.map-photo-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.map-photo-controls button {
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 1.5rem;
 }
 
 .directions-actions,
@@ -1250,4 +1393,30 @@ img {
 .map-pin-button.active {
   background: #17324d;
   color: #fff;
+}
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0.8rem 0 1rem;
+}
+
+.resort-card .shop-card-content {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.resort-card-services,
+.resort-service-list ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.resort-detail {
+  margin-top: 1rem;
+}
+
+.resort-service-list {
+  margin: 1rem 0;
 }

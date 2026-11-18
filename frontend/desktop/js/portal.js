@@ -42,7 +42,6 @@ function getAttractionCoords(attraction) {
 
 // Admin overview cards, guides, and guide applications
 function renderAdminPage(state) {
-  window.AdminAttractionsFeature?.renderMap(state);
   window.AdminAttractionsFeature?.renderList(state);
 
   const bookingCount = document.getElementById('stat-bookings');
@@ -110,6 +109,15 @@ function renderAdminPage(state) {
           ...currentState,
           guides: currentState.guides.filter((item) => item.id !== guide.id)
         }));
+        if (window.lastSyncErrors?.guides) {
+          window.alert(`Guide was not removed: ${window.lastSyncErrors.guides.message}`);
+          try {
+            appState = await loadStateFromSupabase();
+            await renderApp(appState);
+          } catch (error) {
+            window.alert(`The dashboard could not refresh: ${error.message}`);
+          }
+        }
       });
       guideList.appendChild(card);
     });
@@ -167,12 +175,12 @@ function renderAdminPage(state) {
   }
 
   window.AdminShopFeature?.render(state);
-  window.AdminBookingsFeature?.renderList(state);
   window.AdminBookingsFeature?.renderManagement(state);
 }
 
 // Admin tabs, modal controls, guide creation, and shop management
 function setupAdminControls() {
+  window.LocalAdminFeature?.setup();
   document.querySelectorAll('[data-admin-tab]').forEach((tab) => {
     tab.addEventListener('click', () => {
       const target = tab.dataset.adminTab;
@@ -240,31 +248,6 @@ function setupAdminControls() {
     });
   });
 
-  const openAttractions = () => {
-    document.querySelector('[data-admin-tab="attractions"]')?.click();
-    document.querySelector('[data-attraction-view="attraction-add-panel"]')?.click();
-    document.getElementById('pin-picker-modal')?.removeAttribute('hidden');
-    window.setTimeout(() => window.adminAttractionMap?.invalidateSize(), 0);
-  };
-  document.querySelectorAll('#open-attractions-btn, [data-open-attractions]').forEach((button) => {
-    button.addEventListener('click', openAttractions);
-  });
-  document.querySelectorAll('#overview [data-admin-tab="attractions"]').forEach((button) => {
-    button.addEventListener('click', openAttractions);
-  });
-
-  document.getElementById('new-attraction-btn')?.addEventListener('click', () => {
-    document.getElementById('pin-picker-modal')?.removeAttribute('hidden');
-    window.setTimeout(() => window.adminAttractionMap?.invalidateSize(), 0);
-  });
-  document.querySelector('[data-close-pin-picker]')?.addEventListener('click', () => {
-    document.getElementById('pin-picker-modal')?.setAttribute('hidden', '');
-  });
-  document.getElementById('confirm-pin-location')?.addEventListener('click', () => {
-    document.getElementById('pin-picker-modal')?.setAttribute('hidden', '');
-    window.setTimeout(() => window.adminAttractionMap?.invalidateSize(), 0);
-  });
-
   window.AdminShopFeature?.setup();
 }
 
@@ -317,7 +300,7 @@ function setupAdminLogout() {
   const nav = document.querySelector('.topbar .admin-tabs');
   if (!nav || !supabaseClient) return;
   const button = document.createElement('button');
-  button.className = 'admin-tab';
+  button.className = 'admin-tab sidebar-signout';
   button.type = 'button';
   button.textContent = 'Sign out';
   button.addEventListener('click', async () => {
@@ -330,6 +313,7 @@ function setupAdminLogout() {
 async function renderApp(state) { renderAdminPage(state); }
 document.addEventListener('DOMContentLoaded', async () => {
   await requireAdminSession();
+  window.setDashboardNavigation?.(true);
   const year = document.getElementById('year');
   if (year) year.textContent = new Date().getFullYear();
   setupAdminControls();

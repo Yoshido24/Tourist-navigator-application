@@ -1056,3 +1056,40 @@ img {
     height: 190px;
   }
 }
+
+.resort-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+
+.resort-manager-portal [hidden],
+.barangay-admin-portal [hidden] {
+  display: none !important;
+}
+
+.resort-service-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.resort-service-row label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.resort-service-row [data-remove-service] {
+  justify-self: start;
+}
+
+@media (max-width: 480px) {
+  .resort-service-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -6,10 +6,34 @@ const STORE_NAMES = {
   bookings: 'bookings',
   guides: 'guides',
   guideApplications: 'guide_applications',
-  shopProducts: 'shop_products'
+  shopProducts: 'shop_products',
+  resorts: 'public_resorts',
+  barangays: 'barangays'
 };
 const SHOP_CACHE_KEY = 'montalban-navigator-shop-products';
 const ATTRACTION_CACHE_KEY = 'montalban-navigator-attractions';
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function getFunctionErrorMessage(data, error, fallback) {
+  let message = data?.error || error?.message || fallback;
+  if (error?.context?.headers?.get('content-type')?.includes('application/json')) {
+    try {
+      const response = await error.context.json();
+      if (typeof response?.error === 'string' && response.error) message = response.error;
+    } catch (parseError) {
+      console.error('Could not read the function error response.', parseError);
+    }
+  }
+  return message;
+}
 
 const USE_SUPABASE = typeof SUPABASE_URL !== 'undefined' &&
   typeof SUPABASE_ANON_KEY !== 'undefined' &&
@@ -29,7 +53,7 @@ async function getAuthSession() {
 
 function getSessionRole(session) {
   if (!session) return 'anon';
-  return session.user?.app_metadata?.role === 'admin' ? 'admin' : 'authenticated';
+  return ['admin', 'municipal_super_admin'].includes(session.user?.app_metadata?.role) ? 'admin' : 'authenticated';
 }
 
 function readLocalShopProducts() {
@@ -102,8 +126,7 @@ async function fetchOptionalSupabaseTable(tableName) {
 }
 
 async function persistSupabaseCollection(tableName, items, options = {}) {
-  // Use the optional fetch so a missing/not-yet-migrated table doesn't block the upsert below.
-  const existing = await fetchOptionalSupabaseTable(tableName);
+  const existing = options.previousItems || await fetchOptionalSupabaseTable(tableName);
   const nextIds = new Set(items.map((item) => item.id));
   const removedIds = existing
     .map((item) => item.id)
@@ -111,10 +134,15 @@ async function persistSupabaseCollection(tableName, items, options = {}) {
 
   if (removedIds.length) {
     const { error } = await supabaseClient.from(tableName).delete().in('id', removedIds);
-    if (error) console.warn(`Unable to remove stale rows from "${tableName}".`, error);
+    if (error) return { error };
   }
 
-  const payload = withCreatedAt(items);
+  const previous = new Map(existing.map((item) => [item.id, item]));
+  const changedItems = options.previousItems
+    ? items.filter((item) => JSON.stringify(previous.get(item.id)) !== JSON.stringify(item))
+    : items;
+  if (!changedItems.length) return { error: null };
+  const payload = withCreatedAt(changedItems);
 
   // Only drop columns PostgREST actually reports as missing, one at a time, so a single
   // unmigrated column (e.g. meetingPoint) never wipes out unrelated fields (e.g. contact).
@@ -151,11 +179,13 @@ async function loadStateFromSupabase() {
   const role = getSessionRole(await getAuthSession());
   // Row Level Security hides these tables from anon visitors, so only ask for what the role may read.
   const empty = Promise.resolve([]);
-  const [attractions, bookings, guides, shopProducts] = await Promise.all([
+  const [attractions, bookings, guides, shopProducts, resorts, barangays] = await Promise.all([
     fetchSupabaseTable(STORE_NAMES.attractions),
     role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.bookings),
     role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.guides),
-    fetchOptionalSupabaseTable(STORE_NAMES.shopProducts)
+    fetchOptionalSupabaseTable(STORE_NAMES.shopProducts),
+    fetchOptionalSupabaseTable(STORE_NAMES.resorts),
+    fetchOptionalSupabaseTable(STORE_NAMES.barangays)
   ]);
   const cachedShopProducts = readLocalShopProducts();
   const localAttractions = readLocalAttractions();
@@ -171,7 +201,9 @@ async function loadStateFromSupabase() {
     attractions: mergedAttractions.length ? mergedAttractions : (localAttractions.length ? localAttractions : defaultState.attractions),
     bookings: bookings.map(normalizeBooking),
     guides: guides.length ? guides : defaultState.guides,
-    shopProducts: shopProducts.length ? shopProducts : (cachedShopProducts.length ? cachedShopProducts : defaultState.shopProducts)
+    shopProducts: shopProducts.length ? shopProducts : (cachedShopProducts.length ? cachedShopProducts : defaultState.shopProducts),
+    resorts,
+    barangays
   };
 }
 
@@ -209,9 +241,12 @@ async function persistStateToSupabase(state) {
       retryWithout: ['time', 'meetingPoint', 'scheduleNotes', 'contact', 'adults', 'kids', 'pwd', 'guideNote', 'created_at']
     }) : { error: null },
     changed('guides') ? persistSupabaseCollection(STORE_NAMES.guides, state.guides, {
+      previousItems: previousState.guides || [],
       retryWithout: ['email', 'address', 'idNumber', 'experience', 'interviewDate', 'interviewTime', 'interviewLocation']
     }) : { error: null },
-    changed('shopProducts') ? persistSupabaseCollection(STORE_NAMES.shopProducts, state.shopProducts || []).catch((error) => ({
+    changed('shopProducts') ? persistSupabaseCollection(STORE_NAMES.shopProducts, state.shopProducts || [], {
+      previousItems: previousState.shopProducts || []
+    }).catch((error) => ({
       error
     })) : { error: null }
   ]);
@@ -245,7 +280,9 @@ const defaultState = {
   bookings: [],
   guides: [],
   guideApplications: [],
-  shopProducts: []
+  shopProducts: [],
+  resorts: [],
+  barangays: []
 };
 let dbConnection = null;
 let appState = null;
@@ -263,7 +300,7 @@ function normalizeBooking(booking) {
   const rawStatus = String(booking.status || 'Pending').toLowerCase();
   const status = rawStatus === 'completed'
     ? 'Completed'
-    : ['approved', 'assigned', 'confirmed', 'ongoing'].includes(rawStatus)
+    : ['approved', 'rejected', 'assigned', 'confirmed', 'ongoing'].includes(rawStatus)
       ? rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1)
       : 'Pending';
   return {
@@ -404,7 +441,9 @@ async function loadState() {
       bookings: bookings.length ? bookings.map(normalizeBooking) : defaultState.bookings,
       guides: guides.length ? guides : defaultState.guides,
       guideApplications: guideApplications.length ? guideApplications : defaultState.guideApplications,
-      shopProducts: shopProducts.length ? shopProducts : defaultState.shopProducts
+      shopProducts: shopProducts.length ? shopProducts : defaultState.shopProducts,
+      resorts: [],
+      barangays: []
     };
   } catch (error) {
     console.warn('Unable to read the shared database. Using fallback data.', error);
