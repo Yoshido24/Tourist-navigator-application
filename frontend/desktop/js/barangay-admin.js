@@ -216,22 +216,35 @@
       }
     });
     const shopForm = document.getElementById('local-shop-form');
+    const shopImage = document.getElementById('local-shop-image');
     shopForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (shopForm.dataset.saving === 'true') return;
       shopForm.dataset.saving = 'true';
       const message = document.getElementById('local-shop-message');
+      let uploadedPhoto;
+      let submitted = false;
       try {
-        const payload = Object.fromEntries(['name', 'price', 'description', 'availability', 'image']
+        const payload = Object.fromEntries(['name', 'price', 'description', 'availability']
           .map((field) => [field, value(`local-shop-${field}`)]));
+        uploadedPhoto = await uploadShopProductPhoto(shopImage.files?.[0]);
+        payload.image = uploadedPhoto?.url || '';
         const { error } = await supabaseClient.from('shop_submissions').insert({ barangay_id: value('shop-area'), payload });
-        if (error) return showError(message, error);
+        if (error) throw error;
+        submitted = true;
         shopForm.reset();
         message.textContent = 'Product submitted for municipal approval.';
         message.hidden = false;
         try { await loadDashboard(); } catch (error) { showError(message, new Error(`Submitted, but the dashboard could not refresh: ${error.message}`)); }
       } catch (error) {
-        showError(message, error);
+        let detail = error?.message || String(error);
+        if (uploadedPhoto && !submitted) {
+          try { await removeShopProductPhoto(uploadedPhoto.path); } catch (cleanupError) {
+            console.error('Unable to remove a product picture after a failed submission.', cleanupError);
+            detail += ` Picture cleanup failed: ${cleanupError.message}`;
+          }
+        }
+        showError(message, new Error(detail));
       } finally {
         delete shopForm.dataset.saving;
       }

@@ -178,8 +178,9 @@
               <textarea id="shop-product-description" name="description" rows="3" required></textarea>
               <label for="shop-product-availability">Where to buy</label>
               <input id="shop-product-availability" name="availability" placeholder="Available at the market stalls" required />
-              <label for="shop-product-image">Picture URL</label>
-              <input id="shop-product-image" name="image" type="url" placeholder="https://example.com/product.jpg" required />
+              <label for="shop-product-image">Product picture</label>
+              <input id="shop-product-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" required />
+              <small class="form-help">Choose one JPEG, PNG or WebP image up to 5 MB.</small>
               <button class="btn btn-primary" type="submit">Add shop item</button>
               <p id="shop-product-message" class="success-message" role="status" hidden></p>
             </form>

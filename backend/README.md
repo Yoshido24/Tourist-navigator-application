@@ -22,6 +22,7 @@ Run these scripts in the Supabase SQL Editor in order:
 11. `database/showcases.sql`
 12. `database/attraction-photos.sql`
 13. `database/resort-profile.sql`
+14. `database/shop-product-photos.sql`
 
 `resort-profile.sql` adds resort facilities, hours, Facebook link, house rules,
 map pin and owner-managed closed dates. Closed dates take effect immediately
@@ -66,6 +67,15 @@ add, edit, or delete them. They have no booking or guide workflow. Apply
 `showcases.sql` before publishing the updated portals.
 `database/showcases.test.sql` checks public reads and municipal-only changes in
 a disposable Supabase project.
+
+Shop product photos use a public Storage bucket so published products can show
+their images. Photos are publicly retrievable by direct URL as soon as uploaded,
+including while a Barangay product awaits review. Only Municipal and Barangay
+Admins can upload or remove JPEG, PNG, or WebP images up to 5 MB. Apply
+`database/shop-product-photos.sql` before publishing the updated portals, then
+run `database/shop-product-photos.test.sql` in a disposable project. Photos from
+rejected proposals or deleted products remain in Storage; remove unused images
+manually after confirming no approved product references them.
 
 The role workflow migration keeps existing attractions and products intact.
 Barangay admins submit new attractions and products for municipal approval and

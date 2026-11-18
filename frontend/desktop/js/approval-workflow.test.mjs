@@ -96,7 +96,10 @@ test('municipal approval sends the selected pending attraction to the review fun
   const rows = {
     barangays: [{ id: 'area', name: 'Area' }], resort_manager_applications: [], resort_submissions: [],
     attraction_submissions: [{ id: 'proposal-1', barangay_id: 'area', payload: { name: 'Falls', category: 'Nature', coords: [14.73, 121.15] } }],
-    shop_submissions: [], attractions: []
+    shop_submissions: [{
+      id: 'shop-proposal-1', barangay_id: 'area',
+      payload: { name: 'Local snack', price: '₱25', availability: 'At the market', image: 'https://example.test/product.png' }
+    }], attractions: []
   };
   let call;
   const supabaseClient = {
@@ -116,6 +119,7 @@ test('municipal approval sends the selected pending attraction to the review fun
   vm.runInContext(readFileSync(new URL('../features/local-admin/local-admin.js', import.meta.url), 'utf8'), context);
   window.LocalAdminFeature.setup();
   await new Promise((resolve) => setImmediate(resolve));
+  assert.match(element('municipal-shop-proposals').innerHTML, /<img[^>]+src="https:\/\/example\.test\/product\.png"/);
   assert.equal(typeof review, 'function');
   await review();
   assert.equal(call.name, 'review_attraction_submission');

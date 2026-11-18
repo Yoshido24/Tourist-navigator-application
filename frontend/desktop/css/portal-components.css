@@ -448,7 +448,8 @@ img {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-#attractions > .dashboard-grid {
+#attractions > .dashboard-grid,
+#barangay-add-attraction > .dashboard-grid {
   grid-template-columns: 1fr;
 }
 
@@ -1152,10 +1153,102 @@ img {
   text-decoration: none;
 }
 
-.barangay-tabs .admin-tab {
+.barangay-dashboard-layout {
+  display: block;
+}
+
+.barangay-dashboard-content {
+  min-width: 0;
+}
+
+.barangay-page-heading {
+  margin-bottom: 1.5rem;
+}
+
+.barangay-sidebar {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: 212px;
+  padding: 1.25rem 0.75rem;
+  background: #fff;
+  border-left: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(20, 32, 54, 0.06);
+}
+
+.barangay-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.barangay-sidebar .admin-tab {
   display: block;
   width: 100%;
   text-align: left;
+}
+
+.barangay-sidebar .admin-tab.is-active {
+  background: #e7f6f3;
+  border-color: rgba(15, 118, 110, 0.18);
+  color: var(--primary-dark);
+}
+
+.barangay-sidebar .sidebar-signout {
+  width: 100%;
+  margin-top: auto;
+}
+
+@media (min-width: 1024px) {
+  .barangay-admin-portal.navigation-enhanced {
+    padding-right: 212px;
+  }
+
+  .barangay-admin-portal.navigation-enhanced .topbar,
+  .barangay-admin-portal.navigation-enhanced .page-shell {
+    width: 100%;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .barangay-admin-portal.navigation-enhanced .page-shell {
+    padding: 4rem 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .barangay-dashboard-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .barangay-sidebar {
+    position: static;
+    order: -1;
+    width: 100%;
+    padding: 0.5rem 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .barangay-sidebar nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .barangay-sidebar .admin-tab {
+    flex: 0 0 auto;
+    width: auto;
+    text-align: center;
+  }
+
+  .barangay-sidebar .sidebar-signout {
+    width: auto;
+    margin: 0.75rem 0 0 auto;
+  }
 }
 
 .resort-service-row {

@@ -3,6 +3,21 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('Barangay admin shows its logos, header links and sidebar with sign out', () => {
+  const html = readFileSync(new URL('../../../apps/desktop/barangay-admin.html', import.meta.url), 'utf8');
+  assert.match(html, /<a class="brand"[^>]*>[\s\S]*?tourism-logo\.png[\s\S]*?montalban-logo\.png[\s\S]*?Montalban Navigator[\s\S]*?<\/a>/);
+  assert.match(html, /<nav class="nav-links"[^>]*>[\s\S]*?Admin portal[\s\S]*?Home[\s\S]*?<\/nav>/);
+  for (const [section, label] of [
+    ['overview', 'Overview'], ['add-attraction', 'Add attraction'], ['add-product', 'Add product'],
+    ['attractions', 'Attractions'], ['bookings', 'Bookings'], ['resorts', 'Resorts']
+  ]) {
+    assert.match(html, new RegExp(`data-barangay-tab="${section}">${label}</button>`));
+    assert.match(html, new RegExp(`data-barangay-tab-panel="${section}"`));
+  }
+  assert.match(html, /<aside id="barangay-sidebar"[\s\S]*?<\/nav>\s*<button id="barangay-signout"[^>]*>Sign out<\/button>\s*<\/aside>/);
+  assert.match(html, /id="local-shop-image"[^>]*type="file"/);
+});
+
 test('a different signed-in role sees the login screen without sign out or a sidebar', async () => {
   let start;
   const elements = new Map();
@@ -22,6 +37,64 @@ test('a different signed-in role sees the login screen without sign out or a sid
   assert.equal(getElementById('barangay-signin-panel').hidden, false);
   assert.equal(getElementById('barangay-signout').hidden, true);
   assert.deepEqual(sidebar, [false]);
+});
+
+test('a failed Barangay product submission cleans up its uploaded picture', async () => {
+  let start;
+  let submitShop;
+  let inserted;
+  let uploadedFile;
+  const removed = [];
+  const photoFile = { name: 'product.png', type: 'image/png', size: 20 };
+  const elements = new Map();
+  const getElementById = (id) => {
+    if (!elements.has(id)) {
+      elements.set(id, {
+        hidden: true, textContent: '', innerHTML: '', value: '', files: [], dataset: {},
+        addEventListener(event, handler) {
+          if (id === 'local-shop-form' && event === 'submit') submitShop = handler;
+        },
+        querySelectorAll: () => [], reset() {}
+      });
+    }
+    return elements.get(id);
+  };
+  getElementById('shop-area').value = 'area';
+  getElementById('local-shop-name').value = 'Local snack';
+  getElementById('local-shop-price').value = '₱25';
+  getElementById('local-shop-description').value = 'Freshly made';
+  getElementById('local-shop-availability').value = 'At the market';
+  getElementById('local-shop-image').files = [photoFile];
+  const supabaseClient = {
+    from(table) {
+      return {
+        select() { return this; },
+        eq() { return this; },
+        then(resolve) { resolve({ data: [], error: null }); },
+        insert(payload) { inserted = payload; return Promise.resolve({ error: new Error('Database unavailable') }); }
+      };
+    }
+  };
+  const context = vm.createContext({
+    document: { getElementById, addEventListener: (_, handler) => { start = handler; } },
+    getAuthSession: async () => ({ user: { id: 'admin', app_metadata: { role: 'barangay_admin' } } }),
+    supabaseClient,
+    uploadShopProductPhoto: async (file) => {
+      uploadedFile = file;
+      return { path: 'photo.png', url: 'https://example.test/photo.png' };
+    },
+    removeShopProductPhoto: async (path) => { removed.push(path); },
+    escapeHtml: String,
+    window: { AdminTransportFeature: { addRow() {}, loadOptions() {}, readOptions: () => [] } }
+  });
+  vm.runInContext(readFileSync(new URL('./barangay-admin.js', import.meta.url), 'utf8'), context);
+  await start();
+  await submitShop({ preventDefault() {} });
+
+  assert.equal(uploadedFile, photoFile);
+  assert.equal(inserted.payload.image, 'https://example.test/photo.png');
+  assert.deepEqual(removed, ['photo.png']);
+  assert.match(getElementById('local-shop-message').textContent, /Database unavailable/);
 });
 
 test('assigns an approved guide and changes the booking to Assigned', async () => {

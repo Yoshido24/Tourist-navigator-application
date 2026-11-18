@@ -44,7 +44,8 @@
         ? `<p><strong>Category:</strong> ${escapeHtml(payload.category)}<br><strong>Location:</strong> ${escapeHtml(payload.coords.join(', '))}<br><strong>Fee:</strong> ${escapeHtml(payload.fee || 'Not specified')}<br><strong>Duration:</strong> ${escapeHtml(payload.duration || 'Not specified')}</p>
           <p><strong>Trail:</strong> ${escapeHtml(payload.trail || 'Not specified')}<br><strong>Expectations:</strong> ${escapeHtml(payload.expectations || 'Not specified')}<br><strong>Terrain:</strong> ${escapeHtml(payload.terrain || 'Not specified')}<br><strong>Starting point:</strong> ${escapeHtml(payload.startPoint || 'Not specified')}</p>
           <p><strong>Images:</strong> ${escapeHtml((payload.images || []).join(', ') || 'None')}<br><strong>Transport:</strong> ${escapeHtml((payload.transportOptions || []).map((option) => [option.mode, option.fare, option.time, option.route].filter(Boolean).join(' — ')).join('; ') || 'None')}</p>`
-        : `<p><strong>Price:</strong> ${escapeHtml(payload.price)}<br><strong>Availability:</strong> ${escapeHtml(payload.availability)}<br><strong>Image:</strong> ${escapeHtml(payload.image || 'None')}</p>`;
+        : `<p><strong>Price:</strong> ${escapeHtml(payload.price)}<br><strong>Availability:</strong> ${escapeHtml(payload.availability)}</p>
+          ${payload.image ? `<img class="shop-product-image" src="${escapeHtml(payload.image)}" alt="${escapeHtml(payload.name)}" loading="lazy">` : '<p><strong>Image:</strong> None</p>'}`;
       return `<article class="dashboard-card"><h4>${escapeHtml(payload.name)}</h4>
         <p><strong>Barangay:</strong> ${escapeHtml(areas.get(item.barangay_id) || item.barangay_id)}</p>
         <p>${escapeHtml(payload.description || '')}</p>${details}

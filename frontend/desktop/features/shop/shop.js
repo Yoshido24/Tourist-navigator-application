@@ -38,23 +38,24 @@
       if (form.dataset.saving === 'true') return;
       form.dataset.saving = 'true';
       const data = new FormData(form);
-      const product = {
-        id: `shop-${window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
-        name: data.get('name') || '',
-        price: data.get('price') || '',
-        description: data.get('description') || '',
-        availability: data.get('availability') || '',
-        image: data.get('image') || ''
-      };
       const message = document.getElementById('shop-product-message');
+      let uploadedPhoto;
+      let saved = false;
       try {
+        uploadedPhoto = await uploadShopProductPhoto(data.get('image'));
+        if (!uploadedPhoto) throw new Error('Choose a product picture.');
+        const product = {
+          id: `shop-${window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
+          name: data.get('name') || '',
+          price: data.get('price') || '',
+          description: data.get('description') || '',
+          availability: data.get('availability') || '',
+          image: uploadedPhoto.url
+        };
         if (USE_SUPABASE) {
           const { error } = await supabaseClient.from('shop_products').insert(product);
-          if (error) {
-            message.textContent = `Product was not saved: ${error.message}`;
-            message.hidden = false;
-            return;
-          }
+          if (error) throw error;
+          saved = true;
           form.reset();
           message.textContent = 'Product published.';
           message.hidden = false;
@@ -68,8 +69,19 @@
           await updateState((currentState) => ({
             ...currentState, shopProducts: [product, ...(currentState.shopProducts || [])]
           }));
+          saved = true;
           form.reset();
         }
+      } catch (error) {
+        let detail = `Product was not saved: ${error.message}`;
+        if (uploadedPhoto && !saved) {
+          try { await removeShopProductPhoto(uploadedPhoto.path); } catch (cleanupError) {
+            console.error('Unable to remove a product picture after a failed save.', cleanupError);
+            detail += ` Picture cleanup failed: ${cleanupError.message}`;
+          }
+        }
+        message.textContent = detail;
+        message.hidden = false;
       } finally {
         delete form.dataset.saving;
       }

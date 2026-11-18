@@ -135,6 +135,34 @@ async function collectAttractionPhotos(listContainer, fileInput) {
   return [...kept, ...uploaded.map((path) => bucket.getPublicUrl(path).data.publicUrl)];
 }
 
+const SHOP_PRODUCT_PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+
+async function uploadShopProductPhoto(file) {
+  if (!file || !file.size) return null;
+  if (!SHOP_PRODUCT_PHOTO_TYPES[file.type] || file.size > 5 * 1024 * 1024) {
+    throw new Error('Product pictures must be JPEG, PNG or WebP and no larger than 5 MB.');
+  }
+  if (!supabaseClient) throw new Error('Product picture uploads need a Supabase connection.');
+  const bucket = supabaseClient.storage.from('shop-product-photos');
+  const path = `${crypto.randomUUID()}.${SHOP_PRODUCT_PHOTO_TYPES[file.type]}`;
+  const { error } = await bucket.upload(path, file);
+  if (error) throw new Error(`Product picture upload failed: ${error.message}`);
+  const url = bucket.getPublicUrl(path).data?.publicUrl;
+  if (!url) {
+    try { await bucket.remove([path]); } catch (cleanupError) {
+      console.error('Unable to remove a product picture without a public URL.', cleanupError);
+    }
+    throw new Error('No public URL was returned for the product picture.');
+  }
+  return { path, url };
+}
+
+async function removeShopProductPhoto(path) {
+  if (!path) return;
+  const { error } = await supabaseClient.storage.from('shop-product-photos').remove([path]);
+  if (error) throw new Error(`Product picture cleanup failed: ${error.message}`);
+}
+
 // Roles come from Supabase Auth: 'admin' (app_metadata.role), 'authenticated' (guide) or 'anon'.
 async function getAuthSession() {
   if (!supabaseClient) return null;

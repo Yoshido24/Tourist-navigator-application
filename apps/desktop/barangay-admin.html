@@ -12,11 +12,14 @@
   </head>
   <body class="barangay-admin-portal" data-auth-portal="barangay">
     <header class="topbar">
-      <a class="brand" href="../web/user.html"><span>Montalban Navigator</span></a>
+      <a class="brand" href="../web/user.html">
+        <img class="brand-logo" src="../../assets/logos/tourism-logo.png" alt="Montalban Tourism logo" />
+        <img class="brand-logo" src="../../assets/logos/montalban-logo.png" alt="Montalban logo" />
+        <span>Montalban Navigator</span>
+      </a>
       <nav class="nav-links" aria-label="Barangay admin navigation">
         <a href="admin-access.html">Admin portal</a>
         <a href="../web/index.html">Home</a>
-        <button id="barangay-signout" class="btn btn-secondary sidebar-signout" type="button" hidden>Sign out</button>
       </nav>
     </header>
     <main class="page-shell">
@@ -32,102 +35,140 @@
           <p id="barangay-signin-message" class="success-message error-message" role="alert" hidden></p>
         </form>
       </section>
-      <section id="barangay-dashboard" class="section" hidden>
-        <p class="eyebrow">Barangay booking queue</p>
-        <h1 id="barangay-title">Assigned barangays</h1>
-        <p id="barangay-access-message" role="status"></p>
-        <div class="section-heading">
-          <h2>Attractions and shop products</h2>
-          <p>New attractions and products are published after municipal approval. Changes to existing attractions are saved directly.</p>
-        </div>
-        <div class="dashboard-grid">
-          <article class="dashboard-card">
-            <h3 id="local-attraction-heading">Propose an attraction</h3>
-            <form id="local-attraction-form" class="booking-form">
-              <input id="local-attraction-id" type="hidden" />
-              <label for="attraction-area">Barangay</label>
-              <select id="attraction-area" required></select>
-              <label for="local-attraction-name">Name</label>
-              <input id="local-attraction-name" required maxlength="120" />
-              <label for="local-attraction-category">Category</label>
-              <input id="local-attraction-category" required maxlength="120" />
-              <label for="local-attraction-fee">Fee</label>
-              <input id="local-attraction-fee" placeholder="₱50" required />
-              <label for="local-attraction-duration">Duration</label>
-              <input id="local-attraction-duration" placeholder="2-3 hours" required />
-              <label for="local-attraction-description">What is there?</label>
-              <textarea id="local-attraction-description" rows="3" required></textarea>
-              <label for="local-attraction-trail">Trail or route details</label>
-              <textarea id="local-attraction-trail" rows="2"></textarea>
-              <label for="local-attraction-expectations">What visitors should expect</label>
-              <textarea id="local-attraction-expectations" rows="2"></textarea>
-              <label for="local-attraction-terrain">Terrain and accessibility</label>
-              <input id="local-attraction-terrain" />
-              <label for="local-attraction-startPoint">Starting point</label>
-              <input id="local-attraction-startPoint" />
-              <label for="local-attraction-images">Photos (optional)</label>
-              <div id="local-existing-photos"></div>
-              <input id="local-attraction-images" type="file" accept="image/jpeg,image/png,image/webp" multiple />
-              <small class="form-help">Upload up to 5 JPEG, PNG or WebP photos (5 MB each). The first photo appears on the map pin.</small>
-              <fieldset class="transport-editor">
-                <legend>Public transport and fare</legend>
-                <div id="local-transport-options"></div>
-                <button class="btn btn-secondary" id="local-add-transport" type="button">Add transport option</button>
-              </fieldset>
-              <button class="btn btn-secondary" id="local-choose-location" type="button">Choose location on map</button>
-              <p id="local-location-status" class="pin-confirmed-message">Choose a pin location first.</p>
-              <details>
-                <summary>Enter coordinates manually</summary>
-                <label for="local-attraction-latitude">Latitude</label>
-                <input id="local-attraction-latitude" type="number" step="any" min="-90" max="90" />
-                <label for="local-attraction-longitude">Longitude</label>
-                <input id="local-attraction-longitude" type="number" step="any" min="-180" max="180" />
-              </details>
-              <button class="btn btn-primary" type="submit">Save attraction</button>
-              <button class="btn btn-secondary" type="button" id="local-attraction-cancel">Clear</button>
-              <p id="local-attraction-message" role="status" hidden></p>
-            </form>
-          </article>
-          <article class="dashboard-card">
-            <h3>Propose a shop product</h3>
-            <form id="local-shop-form" class="booking-form">
-              <label for="shop-area">Barangay</label><select id="shop-area" required></select>
-              <label for="local-shop-name">Name</label><input id="local-shop-name" maxlength="120" required />
-              <label for="local-shop-price">Price</label><input id="local-shop-price" maxlength="120" required />
-              <label for="local-shop-description">Description</label><textarea id="local-shop-description" maxlength="2000" required></textarea>
-              <label for="local-shop-availability">Availability</label><input id="local-shop-availability" maxlength="240" required />
-              <label for="local-shop-image">Image URL (optional)</label><input id="local-shop-image" type="url" />
-              <button class="btn btn-primary" type="submit">Submit for approval</button>
-              <p id="local-shop-message" role="status" hidden></p>
-            </form>
-          </article>
-        </div>
-        <div id="local-pin-modal" class="modal-backdrop" hidden>
-          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="local-pin-title">
-            <div class="modal-heading">
-              <div><p class="eyebrow">Choose location</p><h3 id="local-pin-title">Choose the attraction location</h3></div>
-              <button class="btn btn-secondary" id="local-cancel-location" type="button">Cancel</button>
+      <section id="barangay-dashboard" class="barangay-dashboard-layout" hidden>
+        <div class="barangay-dashboard-content">
+          <header class="barangay-page-heading">
+            <p class="eyebrow">Barangay administration</p>
+            <h1 id="barangay-title">Assigned barangays</h1>
+            <p id="barangay-access-message" role="status"></p>
+          </header>
+          <section id="barangay-overview" class="barangay-tab-panel" data-barangay-tab-panel="overview" role="tabpanel" hidden>
+            <div class="section-heading">
+              <h2>Overview</h2>
+              <p>Manage local attractions, product proposals, bookings and resort reviews for your assigned barangay.</p>
             </div>
-            <p class="map-caption">Click the map where the attraction is located, then confirm the pin.</p>
-            <div id="local-pin-map" class="leaflet-map" aria-label="Attraction location map"></div>
-            <p id="local-pin-status" class="pin-picker-status">No location selected yet.</p>
-            <button class="btn btn-primary" id="local-confirm-location" type="button" disabled>Confirm pin location</button>
-          </div>
+          </section>
+          <section id="barangay-add-attraction" class="barangay-tab-panel" data-barangay-tab-panel="add-attraction" role="tabpanel">
+            <div class="section-heading">
+              <h2>Add attraction</h2>
+              <p>New attractions are published after municipal approval. Changes to existing attractions are saved directly.</p>
+            </div>
+            <div class="dashboard-grid">
+              <article class="dashboard-card">
+                <h3 id="local-attraction-heading">Propose an attraction</h3>
+                <form id="local-attraction-form" class="booking-form">
+                  <input id="local-attraction-id" type="hidden" />
+                  <label for="attraction-area">Barangay</label>
+                  <select id="attraction-area" required></select>
+                  <label for="local-attraction-name">Name</label>
+                  <input id="local-attraction-name" required maxlength="120" />
+                  <label for="local-attraction-category">Category</label>
+                  <input id="local-attraction-category" required maxlength="120" />
+                  <label for="local-attraction-fee">Fee</label>
+                  <input id="local-attraction-fee" placeholder="₱50" required />
+                  <label for="local-attraction-duration">Duration</label>
+                  <input id="local-attraction-duration" placeholder="2-3 hours" required />
+                  <label for="local-attraction-description">What is there?</label>
+                  <textarea id="local-attraction-description" rows="3" required></textarea>
+                  <label for="local-attraction-trail">Trail or route details</label>
+                  <textarea id="local-attraction-trail" rows="2"></textarea>
+                  <label for="local-attraction-expectations">What visitors should expect</label>
+                  <textarea id="local-attraction-expectations" rows="2"></textarea>
+                  <label for="local-attraction-terrain">Terrain and accessibility</label>
+                  <input id="local-attraction-terrain" />
+                  <label for="local-attraction-startPoint">Starting point</label>
+                  <input id="local-attraction-startPoint" />
+                  <label for="local-attraction-images">Photos (optional)</label>
+                  <div id="local-existing-photos"></div>
+                  <input id="local-attraction-images" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+                  <small class="form-help">Upload up to 5 JPEG, PNG or WebP photos (5 MB each). The first photo appears on the map pin.</small>
+                  <fieldset class="transport-editor">
+                    <legend>Public transport and fare</legend>
+                    <div id="local-transport-options"></div>
+                    <button class="btn btn-secondary" id="local-add-transport" type="button">Add transport option</button>
+                  </fieldset>
+                  <button class="btn btn-secondary" id="local-choose-location" type="button">Choose location on map</button>
+                  <p id="local-location-status" class="pin-confirmed-message">Choose a pin location first.</p>
+                  <details>
+                    <summary>Enter coordinates manually</summary>
+                    <label for="local-attraction-latitude">Latitude</label>
+                    <input id="local-attraction-latitude" type="number" step="any" min="-90" max="90" />
+                    <label for="local-attraction-longitude">Longitude</label>
+                    <input id="local-attraction-longitude" type="number" step="any" min="-180" max="180" />
+                  </details>
+                  <button class="btn btn-primary" type="submit">Save attraction</button>
+                  <button class="btn btn-secondary" type="button" id="local-attraction-cancel">Clear</button>
+                  <p id="local-attraction-message" role="status" hidden></p>
+                </form>
+              </article>
+            </div>
+            <div id="local-pin-modal" class="modal-backdrop" hidden>
+              <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="local-pin-title">
+                <div class="modal-heading">
+                  <div><p class="eyebrow">Choose location</p><h3 id="local-pin-title">Choose the attraction location</h3></div>
+                  <button class="btn btn-secondary" id="local-cancel-location" type="button">Cancel</button>
+                </div>
+                <p class="map-caption">Click the map where the attraction is located, then confirm the pin.</p>
+                <div id="local-pin-map" class="leaflet-map" aria-label="Attraction location map"></div>
+                <p id="local-pin-status" class="pin-picker-status">No location selected yet.</p>
+                <button class="btn btn-primary" id="local-confirm-location" type="button" disabled>Confirm pin location</button>
+              </div>
+            </div>
+          </section>
+          <section id="barangay-add-product" class="barangay-tab-panel" data-barangay-tab-panel="add-product" role="tabpanel" hidden>
+            <div class="section-heading">
+              <h2>Add product</h2>
+              <p>Product proposals are published in the Mini shop after municipal approval.</p>
+            </div>
+            <article class="dashboard-card">
+              <h3>Propose a shop product</h3>
+              <form id="local-shop-form" class="booking-form">
+                <label for="shop-area">Barangay</label><select id="shop-area" required></select>
+                <label for="local-shop-name">Name</label><input id="local-shop-name" maxlength="120" required />
+                <label for="local-shop-price">Price</label><input id="local-shop-price" maxlength="120" required />
+                <label for="local-shop-description">Description</label><textarea id="local-shop-description" maxlength="2000" required></textarea>
+                <label for="local-shop-availability">Availability</label><input id="local-shop-availability" maxlength="240" required />
+                <label for="local-shop-image">Product picture (optional)</label>
+                <input id="local-shop-image" type="file" accept="image/jpeg,image/png,image/webp" />
+                <small class="form-help">Choose one JPEG, PNG or WebP image up to 5 MB.</small>
+                <button class="btn btn-primary" type="submit">Submit for approval</button>
+                <p id="local-shop-message" role="status" hidden></p>
+              </form>
+            </article>
+          </section>
+          <section id="barangay-attractions" class="barangay-tab-panel" data-barangay-tab-panel="attractions" role="tabpanel" hidden>
+            <h2>Attractions</h2>
+            <h3>Existing attractions</h3>
+            <div id="local-attractions" class="dashboard-grid"></div>
+            <h3>Submission status</h3>
+            <div id="local-submissions" class="dashboard-grid"></div>
+          </section>
+          <section id="barangay-bookings-panel" class="barangay-tab-panel" data-barangay-tab-panel="bookings" role="tabpanel" hidden>
+            <div class="section-heading">
+              <h2>Bookings</h2>
+              <p>Review and update requests from attractions assigned to your barangay. Resort requests stay with the owner.</p>
+            </div>
+            <div id="barangay-bookings" class="dashboard-grid"></div>
+          </section>
+          <section id="barangay-resorts" class="barangay-tab-panel" data-barangay-tab-panel="resorts" role="tabpanel" hidden>
+            <div class="section-heading">
+              <h2>Resorts</h2>
+              <p>Approve local resort information and fees before tourists can see it.</p>
+            </div>
+            <div id="barangay-resort-submissions" class="dashboard-grid"></div>
+          </section>
         </div>
-        <h3>Existing attractions</h3>
-        <div id="local-attractions" class="dashboard-grid"></div>
-        <h3>Submission status</h3>
-        <div id="local-submissions" class="dashboard-grid"></div>
-        <div class="section-heading">
-          <h2>Attraction bookings</h2>
-          <p>Review and update requests from attractions assigned to your barangay. Resort requests stay with the owner.</p>
-        </div>
-        <div id="barangay-bookings" class="dashboard-grid"></div>
-        <div class="section-heading">
-          <h2>Resort listings to review</h2>
-          <p>Approve local resort information and fees before tourists can see it.</p>
-        </div>
-        <div id="barangay-resort-submissions" class="dashboard-grid"></div>
+        <aside id="barangay-sidebar" class="barangay-sidebar">
+          <nav aria-label="Barangay sections" role="tablist" aria-orientation="vertical">
+            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-overview" data-barangay-tab="overview">Overview</button>
+            <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="barangay-add-attraction" data-barangay-tab="add-attraction">Add attraction</button>
+            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-add-product" data-barangay-tab="add-product">Add product</button>
+            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-attractions" data-barangay-tab="attractions">Attractions</button>
+            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-bookings-panel" data-barangay-tab="bookings">Bookings</button>
+            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-resorts" data-barangay-tab="resorts">Resorts</button>
+          </nav>
+          <button id="barangay-signout" class="btn btn-secondary sidebar-signout" type="button" hidden>Sign out</button>
+        </aside>
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

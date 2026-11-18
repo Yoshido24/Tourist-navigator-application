@@ -29,6 +29,41 @@ test('attraction photos keep checked photos and upload new files to public stora
   await assert.rejects(run([{ type: 'image/gif', size: 10 }]), /JPEG, PNG or WebP/);
 });
 
+test('shop product photos upload one validated file and return its public URL', async () => {
+  const uploaded = [];
+  const context = vm.createContext({
+    window: {}, SUPABASE_URL: 'https://example.supabase.co', SUPABASE_ANON_KEY: 'test',
+    crypto: { randomUUID: () => 'product-photo' },
+    supabase: { createClient: () => ({ storage: { from: (bucket) => ({
+      upload: async (path, file) => { uploaded.push({ bucket, path, file }); return { error: null }; },
+      remove: async () => ({ error: null }),
+      getPublicUrl: (path) => ({ data: { publicUrl: `https://example.supabase.co/${bucket}/${path}` } })
+    }) } }) }
+  });
+  vm.runInContext(readFileSync(statePath, 'utf8'), context);
+  context.photo = { type: 'image/webp', size: 20 };
+  const result = await vm.runInContext('uploadShopProductPhoto(photo)', context);
+
+  assert.equal(result.path, 'product-photo.webp');
+  assert.equal(result.url, 'https://example.supabase.co/shop-product-photos/product-photo.webp');
+  assert.equal(uploaded[0].bucket, 'shop-product-photos');
+  assert.equal(uploaded[0].file, context.photo);
+  await assert.rejects(
+    vm.runInContext("uploadShopProductPhoto({ type: 'image/gif', size: 20 })", context),
+    /JPEG, PNG or WebP/
+  );
+  const maximumSize = await vm.runInContext(
+    "uploadShopProductPhoto({ type: 'image/png', size: 5 * 1024 * 1024 })",
+    context
+  );
+  assert.equal(maximumSize.path, 'product-photo.png');
+  await assert.rejects(
+    vm.runInContext("uploadShopProductPhoto({ type: 'image/png', size: 5 * 1024 * 1024 + 1 })", context),
+    /5 MB/
+  );
+  assert.equal(uploaded.length, 2);
+});
+
 test('resort photos use signed storage URLs and report inaccessible photos', async () => {
   const errors = [];
   const context = vm.createContext({

@@ -9,6 +9,22 @@
     dashboardVisible = visible;
     document.body.classList.toggle('navigation-enhanced', visible);
   };
+  if (document.body.classList.contains('barangay-admin-portal')) {
+    const tabs = Array.from(document.querySelectorAll('[data-barangay-tab]'));
+    const panels = Array.from(document.querySelectorAll('[data-barangay-tab-panel]'));
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach((item) => {
+          const active = item === tab;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-selected', String(active));
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.barangayTabPanel !== tab.dataset.barangayTab;
+        });
+      });
+    });
+  }
   if (!document.body.classList.contains('resort-manager-portal')) return;
 
   const mobile = window.matchMedia('(max-width: 1023px)');
