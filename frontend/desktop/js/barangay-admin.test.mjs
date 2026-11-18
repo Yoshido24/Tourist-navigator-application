@@ -3,6 +3,68 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('editing a barangay attraction opens its populated form', async () => {
+  let start;
+  let edit;
+  const tabs = ['attractions', 'add-attraction'].map((name) => ({
+    dataset: { barangayTab: name }, classList: { toggle() {} },
+    setAttribute() {}, addEventListener(_, fn) { this.click = fn; }
+  }));
+  const panels = ['attractions', 'add-attraction'].map((name) => ({
+    dataset: { barangayTabPanel: name }, hidden: name !== 'attractions'
+  }));
+  const elements = new Map();
+  const editButton = { dataset: { editAttraction: 'one' }, addEventListener(_, fn) { edit = fn; } };
+  const getElementById = (id) => {
+    if (!elements.has(id)) elements.set(id, {
+      hidden: true, textContent: '', innerHTML: '', value: '', dataset: {},
+      addEventListener() {}, scrollIntoView() {}, reset() {},
+      querySelectorAll: (selector) => id === 'local-attractions' && selector === '[data-edit-attraction]' ? [editButton] : []
+    });
+    return elements.get(id);
+  };
+  const data = {
+    barangay_admin_assignments: [{ barangay_id: 'area' }], barangays: [{ id: 'area', name: 'Area' }],
+    bookings: [], guides: [], resort_submissions: [], attraction_submissions: [], shop_submissions: [],
+    attractions: [{ id: 'one', barangay_id: 'area', name: 'Falls', coords: [14.73, 121.15] }]
+  };
+  const document = {
+    body: { classList: { contains: (name) => name === 'barangay-admin-portal', toggle() {} } },
+    getElementById,
+    querySelector(selector) {
+      if (selector === '.topbar > .nav-links') return {};
+      if (selector === '[data-barangay-tab="add-attraction"]') return tabs[1];
+      return null;
+    },
+    querySelectorAll(selector) {
+      if (selector === '[data-barangay-tab]') return tabs;
+      if (selector === '[data-barangay-tab-panel]') return panels;
+      return [];
+    },
+    addEventListener(_, handler) { start = handler; }
+  };
+  const context = vm.createContext({
+    document, window: { AdminTransportFeature: { addRow() {}, loadOptions() {}, readOptions: () => [] } },
+    escapeHtml: String, renderAttractionPhotoList() {},
+    getAuthSession: async () => ({ user: { id: 'admin', app_metadata: { role: 'barangay_admin' } } }),
+    supabaseClient: {
+      from(table) {
+        return {
+          select() { return this; }, eq() { return this; }, in() { return this; }, order() { return this; },
+          then(resolve) { resolve({ data: data[table], error: null }); }
+        };
+      }
+    }
+  });
+  vm.runInContext(readFileSync(new URL('../../shared/js/navigation.js', import.meta.url), 'utf8'), context);
+  vm.runInContext(readFileSync(new URL('./barangay-admin.js', import.meta.url), 'utf8'), context);
+  await start();
+  edit();
+  assert.equal(getElementById('local-attraction-name').value, 'Falls');
+  assert.equal(panels[0].hidden, true);
+  assert.equal(panels[1].hidden, false);
+});
+
 test('Barangay admin shows its logos, header links and sidebar with sign out', () => {
   const html = readFileSync(new URL('../../../apps/desktop/barangay-admin.html', import.meta.url), 'utf8');
   assert.match(html, /<a class="brand"[^>]*>[\s\S]*?tourism-logo\.png[\s\S]*?montalban-logo\.png[\s\S]*?Montalban Navigator[\s\S]*?<\/a>/);

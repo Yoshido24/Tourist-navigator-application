@@ -102,6 +102,7 @@
         document.getElementById('local-location-status').textContent = coords.length === 2
           ? `Lat ${coords[0]}, Lng ${coords[1]}` : 'Choose a pin location first.';
         document.getElementById('local-attraction-heading').textContent = 'Edit attraction';
+        document.querySelector('[data-barangay-tab="add-attraction"]')?.click();
         document.getElementById('local-attraction-form').scrollIntoView({ behavior: 'smooth' });
       });
     });
