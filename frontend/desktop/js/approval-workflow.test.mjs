@@ -45,6 +45,8 @@ test('barangay attraction submission stays pending and preserves its selected ar
     document: { getElementById: element, addEventListener: (_, fn) => { start = fn; } },
     getAuthSession: async () => ({ user: { id: 'admin', app_metadata: { role: 'barangay_admin' } } }),
     supabaseClient, escapeHtml: (v) => String(v), CSS: { escape: (v) => v },
+    collectAttractionPhotos: async () => ['https://example.test/falls.jpg'],
+    renderAttractionPhotoList() {},
     window: {
       AdminTransportFeature: { addRow() {}, loadOptions() {}, readOptions: () => [] },
       setTimeout: (callback) => callback(),
@@ -64,6 +66,7 @@ test('barangay attraction submission stays pending and preserves its selected ar
   handlers['local-confirm-location:click']();
   const first = handlers['local-attraction-form:submit']({ preventDefault() {} });
   const second = handlers['local-attraction-form:submit']({ preventDefault() {} });
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(inserts, 1);
   resolveInsert({ error: null });
   await Promise.all([first, second]);

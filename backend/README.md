@@ -16,6 +16,17 @@ Run these scripts in the Supabase SQL Editor in order:
 5. `database/local-roles-resorts.sql`
 6. `database/resort-owner-listing-flow.sql`
 7. `database/role-workflows.sql`
+8. `database/guide-barangay.sql`
+9. `database/resort-photos.sql`
+10. `database/event-announcements.sql`
+11. `database/showcases.sql`
+12. `database/attraction-photos.sql`
+13. `database/resort-profile.sql`
+
+`resort-profile.sql` adds resort facilities, hours, Facebook link, house rules,
+map pin and owner-managed closed dates. Closed dates take effect immediately
+(no review) and the `secure-api` function rejects bookings on them, so deploy
+the SQL before the updated function and portals.
 
 The resort migrations add barangay and resort roles, service offerings, owner
 approval, booking routing, and the associated RLS policies. Review the SQL
@@ -28,6 +39,33 @@ Apply `resort-owner-listing-flow.sql` before deploying the updated
 Tourist clients read approved resort snapshots through `public_resorts`; do
 not grant table-wide public access to `resorts`, which stores the private owner
 ID.
+
+Resort photos use the private `resort-photos` Storage bucket. Owners can upload
+JPEG, PNG, or WebP files up to 5 MB each, with up to five photos per listing.
+Assigned barangay reviewers can see pending photos; visitors can access only
+photos referenced by approved resorts. Deploy the SQL before the updated
+portals. Failed uploads or listing submissions and later listing edits can leave
+unreferenced objects in Storage; review them before removing them through the
+Supabase Storage API or dashboard. Do not delete referenced photos.
+`database/resort-photos.test.sql` exercises the Storage policies in a disposable
+Supabase project after the migrations.
+
+Event announcements are managed by Municipal Super Admins and are public until
+their end time. The migration creates the `event-banners` public Storage bucket;
+all images uploaded there are publicly retrievable, and only Municipal Super
+Admins can upload or remove JPEG, PNG, or WebP banners up to 5 MB. Use only
+images intended for public display. If a cleanup error is shown, remove the
+unreferenced banner through Supabase Storage after confirming it is no longer
+used. Apply the migration before deploying the updated portals.
+`database/event-announcements.test.sql` checks announcement visibility and
+municipal-only record access in a disposable Supabase project.
+
+Showcase places are stored separately from bookable attractions. Visitors can
+read their names, descriptions, and map pins; only Municipal Super Admins can
+add, edit, or delete them. They have no booking or guide workflow. Apply
+`showcases.sql` before publishing the updated portals.
+`database/showcases.test.sql` checks public reads and municipal-only changes in
+a disposable Supabase project.
 
 The role workflow migration keeps existing attractions and products intact.
 Barangay admins submit new attractions and products for municipal approval and
@@ -48,6 +86,13 @@ against a database that has not received the migration.
 `database/role-workflows.test.sql` contains rollback-only fixtures for a
 disposable test project. Run the migration and test in the same transaction
 when previewing it; the test's final `rollback` undoes both.
+
+Municipal admins assign one barangay to each guide in the Guides section.
+Existing guides remain unassigned until updated and are not visible or
+assignable to Barangay Admins until then. Barangay Admins can read approved
+guides in their assigned areas and assign them only to bookings in the same
+barangay. Run `database/guide-barangay.test.sql` in a disposable test project
+after applying the migrations.
 
 ## Edge Functions
 

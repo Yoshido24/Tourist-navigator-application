@@ -198,7 +198,7 @@ export function createSecureBookingHandler({
       const isResort = normalized.targetType === 'resort';
       const destinationUrl = new URL(`${supabaseUrl}/rest/v1/${isResort ? 'resorts' : 'attractions'}`);
       destinationUrl.searchParams.set('id', `eq.${normalized.targetId}`);
-      destinationUrl.searchParams.set('select', isResort ? 'id,name,owner_id,barangay_id,services' : 'id,name,barangay_id');
+      destinationUrl.searchParams.set('select', isResort ? 'id,name,owner_id,barangay_id,services,closed_dates' : 'id,name,barangay_id');
       destinationUrl.searchParams.set('limit', '1');
       const destinationResponse = await fetchImpl(destinationUrl, { headers });
       if (!destinationResponse.ok) {
@@ -228,6 +228,14 @@ export function createSecureBookingHandler({
         const hasStayDates = normalized.booking.checkIn !== undefined;
         if ((service.type === 'overnight') !== hasStayDates) {
           return jsonResponse({ ok: false, error: 'Choose dates that match the selected service.' }, 400);
+        }
+        const closedDates = Array.isArray(destination.closed_dates) ? destination.closed_dates : [];
+        const { checkIn, checkOut, date } = normalized.booking;
+        const closed = hasStayDates
+          ? closedDates.some((day) => day >= checkIn && day < checkOut)
+          : closedDates.includes(date);
+        if (closed) {
+          return jsonResponse({ ok: false, error: 'The resort is closed on the selected date. Please choose another date.' }, 400);
         }
       }
 

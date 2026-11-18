@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <link rel="stylesheet" href="../../frontend/desktop/css/portal.css" />
   </head>
-  <body class="barangay-admin-portal">
+  <body class="barangay-admin-portal" data-auth-portal="barangay">
     <header class="topbar">
       <a class="brand" href="../web/user.html"><span>Montalban Navigator</span></a>
       <nav class="nav-links" aria-label="Barangay admin navigation">
@@ -65,8 +65,10 @@
               <input id="local-attraction-terrain" />
               <label for="local-attraction-startPoint">Starting point</label>
               <input id="local-attraction-startPoint" />
-              <label for="local-attraction-images">Image URLs (one per line)</label>
-              <textarea id="local-attraction-images" rows="3"></textarea>
+              <label for="local-attraction-images">Photos (optional)</label>
+              <div id="local-existing-photos"></div>
+              <input id="local-attraction-images" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+              <small class="form-help">Upload up to 5 JPEG, PNG or WebP photos (5 MB each). The first photo appears on the map pin.</small>
               <fieldset class="transport-editor">
                 <legend>Public transport and fare</legend>
                 <div id="local-transport-options"></div>

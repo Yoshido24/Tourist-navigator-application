@@ -52,7 +52,7 @@
       supabaseClient.from('barangays').select('id,name').in('id', ids),
       supabaseClient.from('bookings').select('*').eq('target_type', 'attraction').order('created_at', { ascending: false }),
       supabaseClient.from('attractions').select('*').in('barangay_id', ids),
-      supabaseClient.rpc('approved_guides_for_assignment'),
+      supabaseClient.from('guides').select('id,name,specialty,barangay_id').eq('status', 'Approved'),
       supabaseClient.from('resort_submissions').select('*').eq('status', 'Pending').order('created_at', { ascending: false }),
       supabaseClient.from('attraction_submissions').select('*').order('created_at', { ascending: false }),
       supabaseClient.from('shop_submissions').select('*').order('created_at', { ascending: false })
@@ -92,7 +92,9 @@
         ['name', 'category', 'description', 'fee', 'duration', 'trail', 'expectations', 'terrain', 'startPoint'].forEach((field) => {
           document.getElementById(`local-attraction-${field}`).value = item[field] || '';
         });
-        document.getElementById('local-attraction-images').value = Array.isArray(item.images) ? item.images.join('\n') : '';
+        const imageInput = document.getElementById('local-attraction-images');
+        imageInput.value = '';
+        renderAttractionPhotoList(document.getElementById('local-existing-photos'), item.images);
         window.AdminTransportFeature.loadOptions(document.getElementById('local-transport-options'), item.transportOptions || []);
         const coords = Array.isArray(item.coords) ? item.coords : [];
         document.getElementById('local-attraction-latitude').value = coords[0] ?? '';
@@ -172,6 +174,7 @@
       document.getElementById('local-attraction-id').value = '';
       document.getElementById('attraction-area').disabled = false;
       window.AdminTransportFeature.loadOptions(transportOptions, []);
+      document.getElementById('local-existing-photos').innerHTML = '';
       document.getElementById('local-attraction-heading').textContent = 'Propose an attraction';
       updateLocationStatus();
     };
@@ -193,7 +196,7 @@
           duration: value('local-attraction-duration'),
           trail: value('local-attraction-trail'), expectations: value('local-attraction-expectations'),
           terrain: value('local-attraction-terrain'), startPoint: value('local-attraction-startPoint'),
-          images: value('local-attraction-images').split(/\r?\n/).map((url) => url.trim()).filter(Boolean),
+          images: await collectAttractionPhotos(document.getElementById('local-existing-photos'), document.getElementById('local-attraction-images')),
           transportOptions: window.AdminTransportFeature.readOptions(transportOptions),
           coords: [Number(value('local-attraction-latitude')), Number(value('local-attraction-longitude'))]
         };
@@ -258,7 +261,7 @@
           <label for="guide-${escapeHtml(booking.id)}">Assign guide</label>
           <select id="guide-${escapeHtml(booking.id)}" data-guide-booking="${escapeHtml(booking.id)}">
             <option value="">Not assigned</option>
-            ${guides.map((guide) => `<option value="${escapeHtml(guide.id)}" ${booking.guide_id === guide.id ? 'selected' : ''}>${escapeHtml(guide.name)} — ${escapeHtml(guide.specialty || 'Guide')}</option>`).join('')}
+            ${guides.filter((guide) => guide.barangay_id === booking.barangay_id).map((guide) => `<option value="${escapeHtml(guide.id)}" ${booking.guide_id === guide.id ? 'selected' : ''}>${escapeHtml(guide.name)} — ${escapeHtml(guide.specialty || 'Guide')}</option>`).join('')}
           </select>
           <button class="btn btn-secondary" type="button" data-save-guide="${escapeHtml(booking.id)}">Save guide assignment</button>` : ''}
         <p data-booking-error="${escapeHtml(booking.id)}" class="success-message error-message" role="alert" hidden></p>
@@ -279,7 +282,8 @@
         const bookingId = button.dataset.saveGuide;
         const booking = bookings.find((item) => item.id === bookingId);
         const select = list.querySelector(`[data-guide-booking="${CSS.escape(bookingId)}"]`);
-        const guide = guides.find((item) => item.id === select.value);
+        const guide = guides.find((item) => item.id === select.value && item.barangay_id === booking.barangay_id);
+        if (select.value && !guide) return showError(list.querySelector(`[data-booking-error="${CSS.escape(bookingId)}"]`), new Error('Select a guide from this barangay.'));
         const { data, error } = await supabaseClient.from('bookings')
           .update({ guide_id: guide?.id || null, assignedGuide: guide?.name || '', status: guide ? 'Assigned' : 'Approved' })
           .eq('id', bookingId).eq('status', booking.status).select('id').maybeSingle();
@@ -296,12 +300,14 @@
       list.innerHTML = '<p class="empty-state">No resort listings are waiting for review.</p>';
       return;
     }
-    list.innerHTML = submissions.map((submission) => `
+    list.innerHTML = submissions.map((submission, index) => `
       <article class="dashboard-card">
         <h3>${escapeHtml(submission.name)}</h3>
+        <div class="resort-photos" data-resort-photo-index="${index}"></div>
         <p><strong>Barangay:</strong> ${escapeHtml(barangays.get(submission.barangay_id) || submission.barangay_id)}</p>
         <p>${escapeHtml(submission.description || '')}</p>
         <p><strong>Address:</strong> ${escapeHtml(submission.address || 'Not provided')}</p>
+        ${resortProfileMarkup(submission)}
         <p><strong>Services and fees:</strong><br>${serviceSummary(submission.services) || 'None listed'}</p>
         <div class="attraction-management-actions">
           <button class="btn btn-primary" type="button" data-review-listing="approve" data-submission-id="${escapeHtml(submission.id)}">Approve listing</button>
@@ -311,6 +317,7 @@
       </article>
     `).join('');
 
+    renderResortPhotoContainers(list, submissions);
     list.querySelectorAll('[data-review-listing]').forEach((button) => {
       button.addEventListener('click', async () => {
         const id = button.dataset.submissionId;

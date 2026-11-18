@@ -151,6 +151,12 @@ drop policy if exists "admin write attractions" on public.attractions;
 drop policy if exists "admin update attractions" on public.attractions;
 create policy "admin update attractions" on public.attractions for update to authenticated
   using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "admin insert attractions" on public.attractions;
+create policy "admin insert attractions" on public.attractions for insert to authenticated
+  with check (public.is_admin());
+drop policy if exists "admin delete attractions" on public.attractions;
+create policy "admin delete attractions" on public.attractions for delete to authenticated
+  using (public.is_admin());
 drop policy if exists "barangay admin write attractions" on public.attractions;
 drop policy if exists "barangay admin update attractions" on public.attractions;
 create policy "barangay admin update attractions" on public.attractions for update to authenticated
@@ -183,7 +189,15 @@ drop policy if exists "admin read bookings" on public.bookings;
 create policy "admin read bookings" on public.bookings for select to authenticated
   using (public.is_admin());
 
+alter table public.guides
+  add column if not exists barangay_id text references public.barangays(id) on delete set null;
+alter table public.bookings add column if not exists decline_reason text;
+alter table public.bookings drop constraint if exists bookings_decline_reason_check;
+alter table public.bookings add constraint bookings_decline_reason_check
+  check (decline_reason is null or char_length(decline_reason) <= 100);
 drop policy if exists "barangay admin read approved guides" on public.guides;
+create policy "barangay admin read approved guides" on public.guides for select to authenticated
+  using (status = 'Approved' and public.is_barangay_admin_for(barangay_id));
 create or replace function public.approved_guides_for_assignment()
 returns table (id text, name text, specialty text)
 language plpgsql security definer set search_path = public as $$
@@ -191,7 +205,8 @@ begin
   if not public.is_barangay_admin() then
     raise exception 'Only barangay admins may list guides for assignment.' using errcode = '42501';
   end if;
-  return query select g.id, g.name, g.specialty from public.guides g where g.status = 'Approved';
+  return query select g.id, g.name, g.specialty from public.guides g
+    where g.status = 'Approved' and public.is_barangay_admin_for(g.barangay_id);
 end;
 $$;
 revoke all on function public.approved_guides_for_assignment() from public, anon;
@@ -251,8 +266,11 @@ begin
     if old.status <> 'Pending' or new.status not in ('Approved', 'Rejected') then
       raise exception 'Resort managers may accept or decline pending requests only.' using errcode = '42501';
     end if;
-    if (to_jsonb(new) - 'status' - 'updated_at') is distinct from locked then
+    if (to_jsonb(new) - 'status' - 'updated_at' - 'decline_reason') is distinct from (to_jsonb(old) - 'status' - 'updated_at' - 'decline_reason') then
       raise exception 'Resort managers may only change request status.' using errcode = '42501';
+    end if;
+    if new.status = 'Approved' and new.decline_reason is not null then
+      raise exception 'Only declined requests can have a decline reason.' using errcode = '23514';
     end if;
     return new;
   end if;

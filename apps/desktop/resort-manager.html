@@ -10,13 +10,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../../frontend/desktop/css/portal.css" />
   </head>
-  <body class="resort-manager-portal">
+  <body class="resort-manager-portal" data-auth-portal="resort">
     <header class="topbar">
-      <a class="brand" href="../web/user.html"><span>Montalban Navigator</span></a>
-      <nav class="nav-links" aria-label="Resort owner navigation">
-        <a href="../mobile/partner-access.html">Partner portal</a>
-        <a href="../web/index.html">Home</a>
-        <button id="resort-signout" class="btn btn-secondary sidebar-signout" type="button" hidden>Sign out</button>
+      <a class="brand" href="../web/user.html">
+        <img class="brand-logo" src="../../assets/logos/tourism-logo.png" alt="Montalban Tourism logo" />
+        <img class="brand-logo" src="../../assets/logos/montalban-logo.png" alt="Montalban logo" />
+        <span>Resort access</span>
+      </a>
+      <nav class="nav-links owner-nav" aria-label="Resort owner navigation">
+        <div class="owner-nav-tabs" role="tablist" aria-label="Resort dashboard">
+          <button class="guide-tab is-active" type="button" role="tab" data-resort-tab="resort-overview-panel" id="resort-overview-tab" aria-controls="resort-overview-panel" aria-selected="true">Overview</button>
+          <button class="guide-tab" type="button" role="tab" data-resort-tab="resort-listing-panel" id="resort-listing-tab" aria-controls="resort-listing-panel" aria-selected="false" tabindex="-1">Listing</button>
+          <button class="guide-tab" type="button" role="tab" data-resort-tab="resort-bookings-panel" id="resort-bookings-tab" aria-controls="resort-bookings-panel" aria-selected="false" tabindex="-1">Bookings</button>
+        </div>
+        <div class="guide-menu">
+          <button class="btn btn-secondary" type="button" id="resort-menu-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Open account menu">☰</button>
+          <div class="guide-menu-dropdown" id="resort-menu-dropdown" hidden>
+            <button class="guide-menu-item" type="button" data-resort-tab="resort-account-panel">Account</button>
+            <button class="guide-menu-item" type="button" data-resort-tab="resort-settings-panel">Settings</button>
+            <button class="guide-menu-item" type="button" id="resort-signout">Log out</button>
+          </div>
+        </div>
       </nav>
     </header>
     <main class="page-shell">
@@ -50,9 +64,30 @@
           <h1 id="owner-dashboard-title">Your resort</h1>
           <p id="owner-account-status" role="status"></p>
         </div>
-        <article class="dashboard-card">
+        <section id="resort-overview-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" aria-labelledby="resort-overview-tab">
+          <div class="dashboard-grid">
+            <article class="dashboard-card"><h3>Listing status</h3><p id="owner-overview-listing">No listing yet.</p></article>
+            <article class="dashboard-card"><h3>Pending booking requests</h3><p id="owner-overview-bookings">0</p></article>
+          </div>
+        </section>
+        <section id="resort-account-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" hidden>
+          <article class="dashboard-card">
+            <h2>Account</h2>
+            <p><strong>Name:</strong> <span id="owner-account-name"></span></p>
+            <p><strong>Email:</strong> <span id="owner-account-email"></span></p>
+          </article>
+        </section>
+        <section id="resort-settings-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" hidden>
+          <article class="dashboard-card">
+            <h2>Settings</h2>
+            <p>You are signed in on this device. Use Log out in the menu if this is a shared device.</p>
+          </article>
+        </section>
+        <section id="resort-listing-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" aria-labelledby="resort-listing-tab" hidden>
+          <article class="dashboard-card">
           <h2>Listing and services</h2>
           <div id="owner-listing"></div>
+          <div id="owner-listing-photos" class="resort-photos"></div>
           <button id="owner-edit-listing" class="btn btn-secondary" type="button" hidden>Edit approved listing</button>
           <form id="owner-listing-form" class="booking-form" hidden>
             <label for="owner-listing-name">Resort name</label>
@@ -63,6 +98,36 @@
             <input id="owner-listing-address" name="address" maxlength="240" />
             <label for="owner-listing-description">Description</label>
             <textarea id="owner-listing-description" name="description" rows="3" maxlength="2000"></textarea>
+            <label for="owner-listing-contact">Phone</label>
+            <input id="owner-listing-contact" name="contact" maxlength="60" />
+            <label for="owner-listing-hours">Opening hours</label>
+            <input id="owner-listing-hours" name="openingHours" maxlength="200" placeholder="Daily 8am-5pm" />
+            <label for="owner-listing-facebook">Facebook page (https link)</label>
+            <input id="owner-listing-facebook" name="facebookUrl" type="url" maxlength="300" placeholder="https://facebook.com/yourresort" />
+            <h3>Facilities</h3>
+            <div id="owner-facilities">
+              <label><input type="checkbox" data-facility value="Parking"> Parking</label>
+              <label><input type="checkbox" data-facility value="Restrooms"> Restrooms</label>
+              <label><input type="checkbox" data-facility value="Showers"> Showers</label>
+              <label><input type="checkbox" data-facility value="Pool"> Pool</label>
+              <label><input type="checkbox" data-facility value="Cottages"> Cottages</label>
+              <label><input type="checkbox" data-facility value="Videoke"> Videoke</label>
+              <label><input type="checkbox" data-facility value="Wi-Fi"> Wi-Fi</label>
+              <label><input type="checkbox" data-facility value="Pets allowed"> Pets allowed</label>
+            </div>
+            <label for="owner-listing-rules">House rules and what to bring</label>
+            <textarea id="owner-listing-rules" name="houseRules" rows="3" maxlength="1000"></textarea>
+            <h3>Map pin</h3>
+            <label for="owner-listing-lat">Latitude</label>
+            <input id="owner-listing-lat" type="number" step="any" min="-90" max="90" />
+            <label for="owner-listing-lng">Longitude</label>
+            <input id="owner-listing-lng" type="number" step="any" min="-180" max="180" />
+            <button id="owner-use-location" class="btn btn-secondary" type="button">Use my current location</button>
+            <h3>Photos</h3>
+            <p>Choose the cover photo shown first to tourists.</p>
+            <div id="owner-existing-photos"></div>
+            <label for="owner-listing-images">Add photos (JPEG, PNG or WebP; up to 5 photos, 5 MB each)</label>
+            <input id="owner-listing-images" type="file" accept="image/jpeg,image/png,image/webp" multiple />
             <h3>Services and fees</h3>
             <div id="owner-service-rows"></div>
             <button class="btn btn-secondary" type="button" data-add-service="owner-service-rows">Add another service</button>
@@ -70,18 +135,29 @@
             <button id="owner-cancel-edit" class="btn btn-secondary" type="button">Cancel</button>
             <p id="owner-listing-error" class="success-message error-message" role="alert" hidden></p>
           </form>
-        </article>
-        <div class="section-heading">
-          <h2>Incoming booking requests</h2>
-          <p>Confirm availability yourself; payment and live room availability are not handled here.</p>
-        </div>
-        <div id="owner-bookings" class="dashboard-grid"></div>
+          </article>
+          <article id="owner-closed-card" class="dashboard-card" hidden>
+            <h2>Closed dates</h2>
+            <p>Tourists cannot book these dates. Changes apply immediately.</p>
+            <label for="owner-closed-date">Date</label>
+            <input id="owner-closed-date" type="date" />
+            <button id="owner-add-closed" class="btn btn-secondary" type="button">Close this date</button>
+            <ul id="owner-closed-list"></ul>
+            <p id="owner-closed-error" class="success-message error-message" role="alert" hidden></p>
+          </article>
+        </section>
+        <section id="resort-bookings-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" aria-labelledby="resort-bookings-tab" hidden>
+          <div class="section-heading">
+            <h2>Incoming booking requests</h2>
+            <p>Confirm availability yourself; payment and live room availability are not handled here.</p>
+          </div>
+          <div id="owner-bookings" class="dashboard-grid"></div>
+        </section>
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
-    <script src="../../frontend/shared/js/navigation.js"></script>
     <script src="../../frontend/desktop/js/resort-manager.js"></script>
   </body>
 </html>

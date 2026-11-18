@@ -345,6 +345,34 @@ test('rejects unknown resort services without creating a booking', async () => {
   assert.equal(backend.inserts().length, 0);
 });
 
+test('rejects resort bookings that fall on closed dates', async () => {
+  const resort = {
+    id: 'resort-1', name: 'Sunset Resort', owner_id: 'owner-1', barangay_id: 'b2',
+    closed_dates: ['2026-12-02', '2026-12-25'],
+    services: [
+      { id: 'day-1', type: 'day_visit', name: 'Day visit', fee: 250, pricingUnit: 'person' },
+      { id: 'room-1', type: 'overnight', name: 'Garden room', fee: 3500, pricingUnit: 'night' }
+    ]
+  };
+  const { checkIn, checkOut, ...base } = resortRequest.booking;
+  const cases = [
+    { ...base, serviceId: 'day-1', date: '2026-12-25' },
+    { ...base, serviceId: 'room-1', checkIn, checkOut }
+  ];
+  for (const booking of cases) {
+    const backend = bookingBackend({ resort });
+    const handler = await createHandler(backend.fetchImpl);
+    const response = await handler(post({ ...resortRequest, booking }));
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error, /closed/i);
+    assert.equal(backend.inserts().length, 0);
+  }
+  const backend = bookingBackend({ resort });
+  const handler = await createHandler(backend.fetchImpl);
+  const response = await handler(post({ ...resortRequest, booking: { ...base, serviceId: 'room-1', checkIn: '2026-12-01', checkOut: '2026-12-02' } }));
+  assert.equal(response.status, 200);
+});
+
 test('rejects a resort that is unknown or not approved without inserting', async () => {
   const backend = bookingBackend({ resort: null });
   const handler = await createHandler(backend.fetchImpl);

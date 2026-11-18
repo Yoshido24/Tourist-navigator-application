@@ -403,10 +403,8 @@ create policy "resort manager update resort bookings" on public.bookings for upd
   using (target_type = 'resort' and resort_owner_id = auth.uid() and status = 'Pending')
   with check (target_type = 'resort' and resort_owner_id = auth.uid() and status in ('Approved', 'Rejected'));
 
--- Barangay Admins assign approved guides to bookings in their area, so they may read approved guides.
+-- Guide access is added by guide-barangay.sql after guides have a barangay assignment.
 drop policy if exists "barangay admin read approved guides" on public.guides;
-create policy "barangay admin read approved guides" on public.guides for select to authenticated
-  using (status = 'Approved' and public.is_barangay_admin());
 
 -- Non-admin users cannot change routing or traveller details. Guides and resort managers may change
 -- `status` only; a Barangay Admin may also manage scheduling fields on their own attraction bookings.

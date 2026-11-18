@@ -16,10 +16,11 @@
     }
 
     const barangayNames = new Map((state.barangays || []).map((barangay) => [barangay.id, barangay.name]));
-    list.innerHTML = resorts.map((resort) => {
+    list.innerHTML = resorts.map((resort, index) => {
       const services = Array.isArray(resort.services) ? resort.services : [];
       return `
         <article class="shop-card resort-card">
+          <div class="resort-photos" data-resort-photo-index="${index}"></div>
           <div class="shop-card-content">
             <h3>${escapeHtml(resort.name)}</h3>
             <p><strong>Barangay:</strong> ${escapeHtml(barangayNames.get(resort.barangay_id) || resort.address || 'Montalban')}</p>
@@ -32,6 +33,7 @@
         </article>`;
     }).join('');
 
+    renderResortPhotoContainers(list, resorts);
     list.querySelectorAll('[data-select-resort]').forEach((button) => {
       button.addEventListener('click', () => {
         currentResort = resorts.find((resort) => resort.id === button.dataset.selectResort);
@@ -48,6 +50,7 @@
     document.getElementById('selected-resort-name').textContent = resort.name;
     document.getElementById('selected-resort-location').textContent = resort.address || '';
     document.getElementById('selected-resort-description').textContent = resort.description || '';
+    document.getElementById('selected-resort-profile').innerHTML = resortProfileMarkup(resort);
     document.getElementById('selected-resort-services').innerHTML = services.length
       ? `<h4>Services and fees</h4><ul>${services.map((service) => `<li>${escapeHtml(service.name)} — ${formatFee(service.fee, service.pricingUnit)}</li>`).join('')}</ul>`
       : '<p>No services are currently listed.</p>';

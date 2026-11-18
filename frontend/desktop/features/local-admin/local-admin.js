@@ -164,6 +164,7 @@
         <h3>${escapeHtml(submission.name)}</h3>
         <p><strong>Barangay:</strong> ${escapeHtml(areas.get(submission.barangay_id) || submission.barangay_id)}</p>
         <p>${escapeHtml(submission.description || '')}</p>
+        ${resortProfileMarkup(submission)}
         <p><strong>Services and fees:</strong><br>${(submission.services || []).map((service) => `${escapeHtml(service.name)} — ₱${Number(service.fee).toLocaleString('en-PH')} / ${escapeHtml(service.pricingUnit)}`).join('<br>')}</p>
         <div class="attraction-management-actions">
           <button class="btn btn-primary" type="button" data-municipal-review="approve" data-submission-id="${escapeHtml(submission.id)}">Approve listing</button>

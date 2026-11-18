@@ -50,6 +50,10 @@ and layout primitives. Portal component styles live in each portal's
 
 Open [index.html](index.html) to enter the project from the public web app. It is responsive at phone, tablet, and desktop widths. The root `index.html`, `user.html`, `guide.html`, and `admin.html` remain as redirects so existing bookmarks still work.
 
+Each portal keeps its own browser login, so signing into another role does not
+replace it. Existing users must sign in once after this change. Separate browser
+profiles are still needed to use multiple accounts in the same portal.
+
 ## Deploy to Netlify
 
 1. Push this repository to GitHub and import it into Netlify as a new site.
@@ -114,5 +118,13 @@ Resort owners self-register, but cannot access owner tools until approved by a
 Municipal Super Admin. Barangay Admins review resort listings and edits for
 their assigned area. Resort requests are manually accepted or declined by the
 owner; payments and live availability are not included.
+The resort dashboard has Listing and Bookings tabs. Owners can add up to five
+photos (JPEG, PNG or WebP, 5 MB each) and manage services; approved photos are
+shown to tourists. See [backend setup](backend/README.md) for Storage setup.
+Booking decisions do not automatically send SMS notifications.
+
+Municipal Super Admins assign each guide to one barangay in the Guides section.
+Existing guides are unassigned until updated; Barangay Admins can access and
+assign approved guides only within their assigned barangays.
 
 When no Supabase connection is configured, the app falls back to IndexedDB in the browser. New installations start empty; admins can add attractions, guides, bookings, and shop products from the portals.

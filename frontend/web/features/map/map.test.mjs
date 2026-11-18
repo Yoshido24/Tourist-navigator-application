@@ -16,34 +16,44 @@ function element(tagName = 'div') {
   };
 }
 
-function renderMap(attraction, hasAttractionsPage = false) {
-  const marker = {
-    addTo() { return this; },
-    bindTooltip() {},
-    bindPopup(content) { this.popup = content; },
-    on(event, handler) { this[event] = handler; },
-    openPopup() { this.openCount = (this.openCount || 0) + 1; }
-  };
+function renderMap(attraction, hasAttractionsPage = false, announcements = [], showcases = []) {
+  const markers = [];
   const map = { setView() { return this; }, fitBounds() {} };
   const mapElement = element();
   mapElement.querySelectorAll = () => [];
+  const announcementList = element();
   const viewMore = element('button');
   const details = { innerHTML: '', querySelector() { return viewMore; } };
   const document = {
     getElementById(id) {
       if (id === 'tourist-map') return mapElement;
       if (id === 'tourist-map-details') return details;
+      if (id === 'tourist-announcements') return announcementList;
       if (id === 'user-attractions' && hasAttractionsPage) return {};
       return null;
     },
     createElement: element
   };
   const selected = [];
+  let currentTime = Date.now();
+  let refreshAnnouncements;
   const window = {
     location: {},
+    setTimeout: (callback) => { refreshAnnouncements = callback; return 1; },
+    clearTimeout() {},
     L: {
       map() { return map; },
-      marker() { return marker; },
+      marker() {
+        const marker = {
+          addTo() { return this; },
+          bindTooltip() {},
+          bindPopup(content) { this.popup = content; },
+          on(event, handler) { this[event] = handler; },
+          openPopup() { this.openCount = (this.openCount || 0) + 1; }
+        };
+        markers.push(marker);
+        return marker;
+      },
       tileLayer() { return { addTo() {} }; }
     },
     UserAttractionsFeature: { select(item) { selected.push(item); } }
@@ -51,14 +61,22 @@ function renderMap(attraction, hasAttractionsPage = false) {
   const tabs = [];
   const context = vm.createContext({
     window, document, touristMapInstance: null,
+    Date: class extends Date { static now() { return currentTime; } },
     getAttractionCoords: () => [14.73, 121.15],
+    supabaseClient: { storage: { from: () => ({ getPublicUrl: (path) => ({ data: { publicUrl: `https://example.test/${path}` } }) }) } },
     showUserTab: (tab) => tabs.push(tab),
     escapeHtml: (value) => String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   });
   vm.runInContext(readFileSync(new URL('./map.js', import.meta.url), 'utf8'), context);
-  window.UserMapFeature.render({ attractions: [attraction] });
+  window.UserMapFeature.render({ attractions: attraction ? [attraction] : [], showcases, announcements });
   const pinPanel = mapElement.children.find((child) => child.className === 'map-pin-panel');
-  return { marker, details, pin: pinPanel.children[0], selected, viewMore, window, tabs };
+  return {
+    marker: markers[0], markers, details, pin: pinPanel?.children[0], pinPanel, selected, viewMore, window, tabs, announcementList,
+    refreshAnnouncementsAt(time) {
+      currentTime = Date.parse(time);
+      refreshAnnouncements?.();
+    }
+  };
 }
 
 test('a pin shows one photo at a time and its information below the map', () => {
@@ -103,6 +121,50 @@ test('a single photo does not show carousel controls', () => {
   assert.equal(typeof marker.popup, 'object');
   assert.equal(marker.popup.children[0].src, 'first.jpg');
   assert.equal(marker.popup.children.length, 1);
+});
+
+test('a showcase-only place gets a map pin and info without attraction booking actions', () => {
+  const showcase = {
+    id: 'showcase-1', name: 'Riverside lookout', description: 'A quiet view of the river.',
+    latitude: 14.7, longitude: 121.1
+  };
+  const { markers, pinPanel, details, selected } = renderMap(null, false, [], [showcase]);
+  assert.ok(pinPanel, 'showcase pins should be included when there are no attractions');
+  assert.equal(markers.length, 1);
+  assert.equal(pinPanel.children.length, 1);
+  markers[0].click();
+  assert.match(details.innerHTML, /Riverside lookout/);
+  assert.match(details.innerHTML, /A quiet view of the river/);
+  assert.doesNotMatch(details.innerHTML, /Fee:|View more|Book|Guide/i);
+  assert.deepEqual(selected, []);
+});
+
+test('the map highlights upcoming announcements in start-time order and hides ended events', () => {
+  const { announcementList } = renderMap({ name: 'Mountain', images: [] }, false, [
+    { id: 'later', title: 'Later event', starts_at: '2099-02-01T18:00:00Z', ends_at: '2099-02-01T20:00:00Z', banner_path: 'later.jpg' },
+    { id: 'ended', title: 'Past event', starts_at: '2000-02-01T18:00:00Z', ends_at: '2000-02-01T20:00:00Z', banner_path: 'past.jpg' },
+    { id: 'soon', title: 'Soon event', starts_at: '2099-01-01T18:00:00Z', ends_at: '2099-01-01T20:00:00Z', banner_path: 'soon.jpg' }
+  ]);
+  assert.match(announcementList.innerHTML, /Soon event/);
+  assert.ok(announcementList.innerHTML.indexOf('Soon event') < announcementList.innerHTML.indexOf('Later event'));
+  assert.doesNotMatch(announcementList.innerHTML, /Past event/);
+});
+
+test('both tourist maps provide an announcement area above the map', () => {
+  for (const page of ['../../../../apps/web/index.html', '../../../../apps/web/user.html']) {
+    const html = readFileSync(new URL(page, import.meta.url), 'utf8');
+    assert.match(html, /id="tourist-announcements"/);
+    assert.match(html, /id="tourist-announcements"[\s\S]*?id="tourist-map"/);
+  }
+});
+
+test('an announcement disappears from an already-open map after it ends', () => {
+  const { announcementList, refreshAnnouncementsAt } = renderMap({ name: 'Mountain', images: [] }, false, [
+    { id: 'event', title: 'Market', starts_at: '2099-01-01T18:00:00Z', ends_at: '2099-01-01T18:01:00Z' }
+  ]);
+  assert.match(announcementList.innerHTML, /Market/);
+  refreshAnnouncementsAt('2099-01-01T18:01:01Z');
+  assert.doesNotMatch(announcementList.innerHTML, /Market/);
 });
 
 test('view more opens the attractions page from either map', () => {

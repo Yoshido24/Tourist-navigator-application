@@ -19,6 +19,8 @@ test('builds a self-contained static site without publishing development files',
       'apps/mobile/guide.html',
       'frontend/shared/js/state.js',
       'frontend/web/features/map/map.js',
+      'frontend/desktop/features/announcements/announcements.js',
+      'frontend/desktop/features/showcases/showcases.js',
       '_headers'
     ]) {
       assert.equal(existsSync(path.join(outputDirectory, file)), true, `${file} should be published`);

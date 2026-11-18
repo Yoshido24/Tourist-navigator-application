@@ -103,3 +103,15 @@ img {
 
 .nav-links {
   display: flex;
+.resort-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.resort-photo {
+  width: 10rem;
+  height: 7rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}

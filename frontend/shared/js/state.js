@@ -7,6 +7,8 @@ const STORE_NAMES = {
   guides: 'guides',
   guideApplications: 'guide_applications',
   shopProducts: 'shop_products',
+  announcements: 'announcements',
+  showcases: 'showcases',
   resorts: 'public_resorts',
   barangays: 'barangays'
 };
@@ -42,7 +44,96 @@ const USE_SUPABASE = typeof SUPABASE_URL !== 'undefined' &&
   !SUPABASE_URL.includes('your-project-ref') &&
   !SUPABASE_ANON_KEY.includes('your-anon-key');
 
-const supabaseClient = USE_SUPABASE ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const authPortal = typeof document !== 'undefined' ? document.body?.dataset.authPortal || 'public' : 'public';
+const supabaseClient = USE_SUPABASE ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: `montalban-auth-${SUPABASE_URL}-${authPortal}` }
+}) : null;
+
+function resortProfileMarkup(resort) {
+  const facilities = Array.isArray(resort.facilities) ? resort.facilities : [];
+  const today = new Date().toISOString().slice(0, 10);
+  const closed = (Array.isArray(resort.closed_dates) ? resort.closed_dates : []).filter((day) => day >= today).sort();
+  const hasPin = Number.isFinite(Number(resort.latitude)) && resort.latitude !== null && Number.isFinite(Number(resort.longitude)) && resort.longitude !== null;
+  const rows = [
+    facilities.length && `<p><strong>Facilities:</strong> ${facilities.map(escapeHtml).join(', ')}</p>`,
+    resort.opening_hours && `<p><strong>Opening hours:</strong> ${escapeHtml(resort.opening_hours)}</p>`,
+    resort.contact && `<p><strong>Phone:</strong> ${escapeHtml(resort.contact)}</p>`,
+    /^https:\/\//i.test(resort.facebook_url || '') && `<p><a href="${escapeHtml(resort.facebook_url)}" target="_blank" rel="noopener noreferrer">Facebook page</a></p>`,
+    resort.house_rules && `<p><strong>House rules and what to bring:</strong><br>${escapeHtml(resort.house_rules)}</p>`,
+    hasPin && `<p><a href="https://www.google.com/maps?q=${Number(resort.latitude)},${Number(resort.longitude)}" target="_blank" rel="noopener noreferrer">View map pin</a></p>`,
+    closed.length && `<p><strong>Closed on:</strong> ${closed.map(escapeHtml).join(', ')}</p>`
+  ];
+  return rows.filter(Boolean).join('');
+}
+
+async function resortPhotoMarkup(images, name) {
+  const photos = Array.isArray(images) ? images : [];
+  const markup = await Promise.all(photos.map(async (photo) => {
+    try {
+      if (typeof photo !== 'string' || !photo) throw new Error('Invalid resort photo.');
+      let url = photo;
+      if (!/^https?:\/\//i.test(photo)) {
+        const { data, error } = await supabaseClient.storage.from('resort-photos').createSignedUrl(photo, 3600);
+        if (error) throw error;
+        if (!data?.signedUrl) throw new Error('No photo URL was returned.');
+        url = data.signedUrl;
+      }
+      return `<img class="resort-photo" src="${escapeHtml(url)}" alt="${escapeHtml(name)}" loading="lazy">`;
+    } catch (error) {
+      console.error('Unable to load resort photo.', error);
+      return '<p class="error-message">Photo unavailable.</p>';
+    }
+  }));
+  return markup.join('');
+}
+
+function renderResortPhotoContainers(container, listings) {
+  container.querySelectorAll('[data-resort-photo-index]').forEach((element) => {
+    const listing = listings[Number(element.dataset.resortPhotoIndex)];
+    resortPhotoMarkup(listing.images, listing.name).then((markup) => { element.innerHTML = markup; });
+  });
+}
+
+const ATTRACTION_PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const ATTRACTION_PHOTO_LIMIT = 5;
+
+function renderAttractionPhotoList(container, images) {
+  const photos = (Array.isArray(images) ? images : []).filter((url) => typeof url === 'string' && url);
+  container.innerHTML = photos.map((url, index) => `
+    <label class="attraction-photo-keep">
+      <input type="checkbox" checked value="${escapeHtml(url)}" data-keep-attraction-photo>
+      <img src="${escapeHtml(url)}" alt="Attraction photo ${index + 1}" width="64" height="64" loading="lazy">
+      Keep photo ${index + 1}
+    </label>`).join('');
+}
+
+// Returns the kept photo URLs plus public URLs of newly uploaded files; removes new uploads if any upload fails.
+async function collectAttractionPhotos(listContainer, fileInput) {
+  const kept = Array.from(listContainer.querySelectorAll('[data-keep-attraction-photo]:checked'), (item) => item.value);
+  const files = Array.from(fileInput.files || []);
+  if (!files.length) return kept;
+  if (kept.length + files.length > ATTRACTION_PHOTO_LIMIT) {
+    throw new Error(`Choose no more than ${ATTRACTION_PHOTO_LIMIT} photos in total.`);
+  }
+  if (files.some((file) => !ATTRACTION_PHOTO_TYPES[file.type] || !file.size || file.size > 5 * 1024 * 1024)) {
+    throw new Error('Photos must be JPEG, PNG or WebP and no larger than 5 MB.');
+  }
+  if (!supabaseClient) throw new Error('Photo uploads need a Supabase connection.');
+  const bucket = supabaseClient.storage.from('attraction-photos');
+  const uploaded = [];
+  try {
+    for (const file of files) {
+      const path = `${crypto.randomUUID()}.${ATTRACTION_PHOTO_TYPES[file.type]}`;
+      const { error } = await bucket.upload(path, file);
+      if (error) throw new Error(`Photo upload failed: ${error.message}`);
+      uploaded.push(path);
+    }
+  } catch (error) {
+    if (uploaded.length) await bucket.remove(uploaded).catch((cleanupError) => console.error('Unable to remove incomplete photo uploads.', cleanupError));
+    throw error;
+  }
+  return [...kept, ...uploaded.map((path) => bucket.getPublicUrl(path).data.publicUrl)];
+}
 
 // Roles come from Supabase Auth: 'admin' (app_metadata.role), 'authenticated' (guide) or 'anon'.
 async function getAuthSession() {
@@ -179,11 +270,13 @@ async function loadStateFromSupabase() {
   const role = getSessionRole(await getAuthSession());
   // Row Level Security hides these tables from anon visitors, so only ask for what the role may read.
   const empty = Promise.resolve([]);
-  const [attractions, bookings, guides, shopProducts, resorts, barangays] = await Promise.all([
+  const [attractions, bookings, guides, shopProducts, announcements, showcases, resorts, barangays] = await Promise.all([
     fetchSupabaseTable(STORE_NAMES.attractions),
     role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.bookings),
     role === 'anon' ? empty : fetchOptionalSupabaseTable(STORE_NAMES.guides),
     fetchOptionalSupabaseTable(STORE_NAMES.shopProducts),
+    fetchOptionalSupabaseTable(STORE_NAMES.announcements),
+    fetchOptionalSupabaseTable(STORE_NAMES.showcases),
     fetchOptionalSupabaseTable(STORE_NAMES.resorts),
     fetchOptionalSupabaseTable(STORE_NAMES.barangays)
   ]);
@@ -202,6 +295,8 @@ async function loadStateFromSupabase() {
     bookings: bookings.map(normalizeBooking),
     guides: guides.length ? guides : defaultState.guides,
     shopProducts: shopProducts.length ? shopProducts : (cachedShopProducts.length ? cachedShopProducts : defaultState.shopProducts),
+    announcements,
+    showcases,
     resorts,
     barangays
   };
@@ -281,6 +376,8 @@ const defaultState = {
   guides: [],
   guideApplications: [],
   shopProducts: [],
+  announcements: [],
+  showcases: [],
   resorts: [],
   barangays: []
 };
@@ -442,6 +539,8 @@ async function loadState() {
       guides: guides.length ? guides : defaultState.guides,
       guideApplications: guideApplications.length ? guideApplications : defaultState.guideApplications,
       shopProducts: shopProducts.length ? shopProducts : defaultState.shopProducts,
+      announcements: defaultState.announcements,
+      showcases: defaultState.showcases,
       resorts: [],
       barangays: []
     };

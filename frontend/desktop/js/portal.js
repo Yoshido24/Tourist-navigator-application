@@ -42,7 +42,10 @@ function getAttractionCoords(attraction) {
 
 // Admin overview cards, guides, and guide applications
 function renderAdminPage(state) {
+  window.AdminAttractionsFeature?.renderMap(state);
   window.AdminAttractionsFeature?.renderList(state);
+  window.AdminAnnouncementsFeature?.render(state.announcements || []);
+  window.AdminShowcaseFeature?.render(state.showcases || []);
 
   const bookingCount = document.getElementById('stat-bookings');
   if (bookingCount) {
@@ -194,6 +197,14 @@ function setupAdminControls() {
     });
   });
 
+  document.querySelectorAll('[data-local-admin-view]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('[data-local-admin-panel]').forEach((panel) => {
+        panel.hidden = panel.id !== tab.dataset.localAdminView;
+      });
+    });
+  });
+
   document.querySelectorAll('[data-attraction-view]').forEach((tab) => {
     tab.addEventListener('click', () => {
       const target = tab.dataset.attractionView;
@@ -318,6 +329,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (year) year.textContent = new Date().getFullYear();
   setupAdminControls();
   setupAdminLogout();
+  window.AdminAnnouncementsFeature?.setup();
+  window.AdminShowcaseFeature?.setup();
   appState = await loadState();
   await renderApp(appState);
 

@@ -119,13 +119,13 @@ begin
 end $$;
 select set_config('request.jwt.claims', '{"sub":"e995d890-3fae-4879-bc4b-02887e7d2ab2","role":"authenticated","app_metadata":{"role":"municipal_super_admin"}}', true);
 reset role;
-insert into public.guides (id, name, status) values ('flow-test-guide', 'Test guide', 'Approved');
+insert into public.guides (id, name, status, barangay_id) values ('flow-test-guide', 'Test guide', 'Approved', 'flow-test-area-a');
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"e995d890-3fae-4879-bc4b-02887e7d2ab1","role":"authenticated","app_metadata":{"role":"barangay_admin"}}', true);
 do $$
 begin
-  if exists (select 1 from public.guides where id = 'flow-test-guide') then
-    raise exception 'Barangay admin can read private guide records';
+  if not exists (select 1 from public.guides where id = 'flow-test-guide') then
+    raise exception 'Barangay admin cannot read a guide in their area';
   end if;
   if not exists (select 1 from public.approved_guides_for_assignment() where id = 'flow-test-guide') then
     raise exception 'Barangay admin cannot select approved guides';
@@ -168,7 +168,7 @@ end $$;
 reset role;
 insert into public.bookings (id, target_type, target_id, "attractionId", barangay_id, status)
 values ('flow-test-booking', 'attraction', 'flow-test-attraction', 'flow-test-attraction', 'flow-test-area-a', 'Pending');
-insert into public.guides (id, name, status) values ('flow-test-active-guide', 'Active guide', 'Approved');
+insert into public.guides (id, name, status, barangay_id) values ('flow-test-active-guide', 'Active guide', 'Approved', 'flow-test-area-a');
 insert into public.bookings (id, target_type, target_id, "attractionId", barangay_id, status, guide_id, "assignedGuide")
 values ('flow-test-active-booking', 'attraction', 'flow-test-attraction', 'flow-test-attraction',
   'flow-test-area-a', 'Ongoing', 'flow-test-active-guide', 'Active guide');
