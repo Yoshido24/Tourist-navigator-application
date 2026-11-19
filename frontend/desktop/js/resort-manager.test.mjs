@@ -69,7 +69,7 @@ test('shows a dashboard loading error after restoring a signed-in session', asyn
   assert.equal(elements['owner-account-status'].textContent, 'Connection failed');
 });
 
-test('approved owners add services before submitting their first listing', async () => {
+test('resort owners can edit services while their listing awaits review', async () => {
     function element() {
       return {
         hidden: true, textContent: '', innerHTML: '', value: '', dataset: {},
@@ -89,6 +89,7 @@ test('approved owners add services before submitting their first listing', async
     const elements = Object.fromEntries(ids.map((id) => [id, element()]));
     let start;
     const inserts = [];
+    const updates = [];
     const uploads = [];
     const removedUploads = [];
     let uploadError = null;
@@ -97,11 +98,12 @@ test('approved owners add services before submitting their first listing', async
     let nextId = 0;
     const submissions = [];
     let rows = [];
+    let serviceName = 'Day pass';
     const service = {
       dataset: { serviceId: '' },
       querySelector(selector) {
         return { value: {
-          '[data-service-name]': 'Day pass',
+          '[data-service-name]': serviceName,
           '[data-service-fee]': '250',
           '[data-service-type]': 'day_visit',
           '[data-service-unit]': 'person'
@@ -127,7 +129,20 @@ test('approved owners add services before submitting their first listing', async
         if (table === 'resort_manager_applications') return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { resort: { name: 'Sunset', barangayId: 'b1', address: 'Street', description: 'Pool', contact: '123', images: [] } }, error: null }) }) }) };
         if (table === 'resort_submissions') return {
           select: () => ({ eq: () => ({ order: async () => ({ data: submissions, error: null }) }) }),
-          insert: async (value) => { inserts.push(value); submissions.push(value); return { error: null }; }
+          insert: async (value) => { inserts.push(value); submissions.push({ ...value, id: 'submission-1' }); return { error: null }; },
+          update: (value) => ({
+            eq: (_field, id) => ({
+              eq: (_statusField, status) => ({
+                select: () => ({
+                  maybeSingle: async () => {
+                    updates.push(value);
+                    Object.assign(submissions.find((submission) => submission.id === id && submission.status === status), value);
+                    return { data: { id }, error: null };
+                  }
+                })
+              })
+            })
+          })
         };
         if (table === 'bookings') return { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) };
         throw new Error(`Unexpected table: ${table}`);
@@ -195,8 +210,15 @@ test('approved owners add services before submitting their first listing', async
     await new Promise((resolve) => setImmediate(resolve));
     assert.match(elements['owner-listing-photos'].innerHTML, /owner\/new-id-\d+\.jpg/);
     assert.equal(elements['owner-listing-form'].hidden, true);
-    assert.equal(elements['owner-edit-listing'].hidden, true);
+    assert.equal(elements['owner-edit-listing'].hidden, false);
     assert.match(elements['owner-listing'].innerHTML, /waiting for Barangay Admin review/i);
+    elements['owner-edit-listing'].click();
+    assert.equal(elements['owner-listing-form'].hidden, false);
+    serviceName = 'Updated day pass';
+    await elements['owner-listing-form'].submit({ preventDefault() {} });
+    assert.equal(inserts.length, 1);
+    assert.equal(updates.length, 1);
+    assert.equal(updates[0].services[0].name, 'Updated day pass');
     await elements['resort-signout'].click();
     assert.equal(elements['owner-listing-photos'].innerHTML, '');
 });

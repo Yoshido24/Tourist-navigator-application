@@ -258,10 +258,47 @@
         <p><strong>Fee:</strong> ${escapeHtml(attraction.fee)} • <strong>Duration:</strong> ${escapeHtml(attraction.duration)}</p>
         <div class="attraction-management-actions">
           <button class="btn btn-secondary" type="button" data-edit-attraction="${escapeHtml(attraction.id)}">Edit</button>
+          <button class="btn btn-secondary" type="button" data-delete-attraction="${escapeHtml(attraction.id)}">Delete</button>
         </div>
       `;
       card.querySelector('[data-edit-attraction]').addEventListener('click', () => {
         window.AdminAttractionsFeature.selectForEdit(attraction);
+      });
+      const deleteButton = card.querySelector('[data-delete-attraction]');
+      deleteButton.addEventListener('click', async () => {
+        if (!window.confirm(`Delete "${attraction.name}"? Existing bookings will remain.`)) return;
+        deleteButton.disabled = true;
+        try {
+          if (USE_SUPABASE) {
+            const { data, error } = await supabaseClient.from('attractions')
+              .delete().eq('id', attraction.id).select('id').maybeSingle();
+            if (error) throw error;
+            if (!data) throw new Error('Attraction was not deleted. Refresh and try again.');
+            appState = { ...appState, attractions: appState.attractions.filter((item) => item.id !== attraction.id) };
+            writeLocalAttractions(appState.attractions);
+            try {
+              await renderApp(appState);
+            } catch (error) {
+              window.alert(`Attraction deleted, but the page could not refresh: ${error.message}`);
+            }
+          } else {
+            await updateState((current) => ({
+              ...current, attractions: current.attractions.filter((item) => item.id !== attraction.id)
+            }));
+          }
+          if (editingId === attraction.id) {
+            editingId = null;
+            document.getElementById('add-attraction-form')?.reset();
+            const photos = document.getElementById('attraction-existing-photos');
+            if (photos) photos.innerHTML = '';
+            const transport = document.getElementById('transport-option-list');
+            if (transport) window.AdminTransportFeature.loadOptions(transport, []);
+          }
+        } catch (error) {
+          window.alert(`Attraction was not deleted: ${error.message}`);
+        } finally {
+          deleteButton.disabled = false;
+        }
       });
       attractionList.appendChild(card);
     });

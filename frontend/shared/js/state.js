@@ -319,7 +319,7 @@ async function loadStateFromSupabase() {
   });
 
   return {
-    attractions: mergedAttractions.length ? mergedAttractions : (localAttractions.length ? localAttractions : defaultState.attractions),
+    attractions: mergedAttractions,
     bookings: bookings.map(normalizeBooking),
     guides: guides.length ? guides : defaultState.guides,
     shopProducts: shopProducts.length ? shopProducts : (cachedShopProducts.length ? cachedShopProducts : defaultState.shopProducts),

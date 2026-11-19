@@ -111,7 +111,7 @@
     const pending = submissions.find((item) => item.status === 'Pending');
     const rejected = submissions.find((item) => item.status === 'Rejected');
     approvedListing = latestApproved || null;
-    editableListing = latestApproved || (!pending && rejected) || null;
+    editableListing = pending || latestApproved || rejected || null;
     const display = document.getElementById('owner-listing');
     const editButton = document.getElementById('owner-edit-listing');
     const photos = document.getElementById('owner-listing-photos');
@@ -134,13 +134,14 @@
         ${resortProfileMarkup(latestApproved)}
         <p><strong>Services and fees:</strong></p>
         <ul>${(latestApproved.services || []).map((service) => `<li>${escapeHtml(service.name)} — ₱${Number(service.fee).toLocaleString('en-PH')} / ${escapeHtml(service.pricingUnit)}</li>`).join('')}</ul>`;
-      editButton.hidden = Boolean(pending);
-      editButton.textContent = 'Edit approved listing';
+      editButton.hidden = false;
+      editButton.textContent = pending ? 'Edit pending changes' : 'Edit approved listing';
       return;
     }
-    editButton.hidden = true;
     if (pending) {
       display.innerHTML = `<h3>${escapeHtml(pending.name)}</h3><p>Your first listing is waiting for Barangay Admin review.</p>`;
+      editButton.hidden = false;
+      editButton.textContent = 'Edit pending listing';
     } else if (rejected) {
       display.innerHTML = `<h3>${escapeHtml(rejected.name)}</h3><p>Your listing was rejected: ${escapeHtml(rejected.review_note || 'Contact the barangay tourism office for details.')}</p>`;
       editButton.hidden = false;
@@ -160,6 +161,7 @@
       editButton.hidden = false;
       editButton.textContent = 'Set up listing';
     } else {
+      editButton.hidden = true;
       display.innerHTML = '<p>Your owner account is approved, but no resort listing was found. Contact the Municipal Admin.</p>';
     }
   }
@@ -509,7 +511,7 @@
           images.push(path);
         }
         submissionStarted = true;
-        const { error } = await supabaseClient.from('resort_submissions').insert({
+        const submission = {
           resort_id: approvedListing?.resort_id || null,
           owner_id: owner.id,
           barangay_id: document.getElementById('owner-listing-barangay').value,
@@ -526,8 +528,15 @@
           images,
           services,
           status: 'Pending'
-        });
-        if (error) throw error;
+        };
+        const result = editableListing.status === 'Pending'
+          ? await supabaseClient.from('resort_submissions').update(submission)
+            .eq('id', editableListing.id).eq('status', 'Pending').select('id').maybeSingle()
+          : await supabaseClient.from('resort_submissions').insert(submission);
+        if (result.error) throw result.error;
+        if (editableListing.status === 'Pending' && !result.data) {
+          throw new Error('Pending listing was not updated. Refresh and try again.');
+        }
       } catch (error) {
         let message = error.message;
         if (!submissionStarted && uploaded.length) {

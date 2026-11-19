@@ -22,6 +22,7 @@ function renderMap(attraction, hasAttractionsPage = false, announcements = [], s
   const mapElement = element();
   mapElement.querySelectorAll = () => [];
   const announcementList = element();
+  const announcementEmpty = element();
   const viewMore = element('button');
   const details = { innerHTML: '', querySelector() { return viewMore; } };
   const document = {
@@ -29,6 +30,7 @@ function renderMap(attraction, hasAttractionsPage = false, announcements = [], s
       if (id === 'tourist-map') return mapElement;
       if (id === 'tourist-map-details') return details;
       if (id === 'tourist-announcements') return announcementList;
+      if (id === 'tourist-announcements-empty' && hasAttractionsPage) return announcementEmpty;
       if (id === 'user-attractions' && hasAttractionsPage) return {};
       return null;
     },
@@ -71,7 +73,7 @@ function renderMap(attraction, hasAttractionsPage = false, announcements = [], s
   window.UserMapFeature.render({ attractions: attraction ? [attraction] : [], showcases, announcements });
   const pinPanel = mapElement.children.find((child) => child.className === 'map-pin-panel');
   return {
-    marker: markers[0], markers, details, pin: pinPanel?.children[0], pinPanel, selected, viewMore, window, tabs, announcementList,
+    marker: markers[0], markers, details, pin: pinPanel?.children[0], pinPanel, selected, viewMore, window, tabs, announcementList, announcementEmpty,
     refreshAnnouncementsAt(time) {
       currentTime = Date.parse(time);
       refreshAnnouncements?.();
@@ -150,12 +152,25 @@ test('the map highlights upcoming announcements in start-time order and hides en
   assert.doesNotMatch(announcementList.innerHTML, /Past event/);
 });
 
-test('both tourist maps provide an announcement area above the map', () => {
-  for (const page of ['../../../../apps/web/index.html', '../../../../apps/web/user.html']) {
-    const html = readFileSync(new URL(page, import.meta.url), 'utf8');
-    assert.match(html, /id="tourist-announcements"/);
-    assert.match(html, /id="tourist-announcements"[\s\S]*?id="tourist-map"/);
-  }
+test('announcements have their own traveler tab instead of appearing in the map tab', () => {
+  const html = readFileSync(new URL('../../../../apps/web/user.html', import.meta.url), 'utf8');
+  const mapSection = html.match(/<section id="user-map"[\s\S]*?<\/section>/)?.[0];
+  const announcementsSection = html.match(/<section id="user-announcements"[\s\S]*?<\/section>/)?.[0];
+  assert.match(html, /data-user-tab="user-announcements"/);
+  assert.ok(announcementsSection);
+  assert.match(announcementsSection, /id="tourist-announcements"/);
+  assert.doesNotMatch(mapSection, /id="tourist-announcements"/);
+});
+
+test('the announcements tab shows an empty state when events have ended', () => {
+  const { announcementList, announcementEmpty, refreshAnnouncementsAt } = renderMap(
+    { name: 'Mountain', images: [] }, true,
+    [{ title: 'Market', starts_at: '2099-01-01T18:00:00Z', ends_at: '2099-01-01T18:01:00Z' }]
+  );
+  assert.equal(announcementEmpty.hidden, true);
+  refreshAnnouncementsAt('2099-01-01T18:01:01Z');
+  assert.equal(announcementList.hidden, true);
+  assert.equal(announcementEmpty.hidden, false);
 });
 
 test('an announcement disappears from an already-open map after it ends', () => {

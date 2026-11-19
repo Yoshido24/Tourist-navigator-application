@@ -94,6 +94,8 @@
       .sort((left, right) => Date.parse(left.starts_at) - Date.parse(right.starts_at));
 
     container.hidden = !currentAnnouncements.length;
+    const emptyMessage = document.getElementById('tourist-announcements-empty');
+    if (emptyMessage) emptyMessage.hidden = currentAnnouncements.length > 0;
     container.innerHTML = currentAnnouncements.map((item) => {
       const bannerUrl = item.banner_path && supabaseClient?.storage?.from('event-banners')
         .getPublicUrl(item.banner_path).data?.publicUrl;

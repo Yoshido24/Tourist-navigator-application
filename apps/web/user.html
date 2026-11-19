@@ -31,6 +31,7 @@
       <button class="user-menu-toggle" type="button" id="user-menu-toggle" aria-label="Open navigation menu" aria-controls="user-navigation" aria-expanded="false">☰</button>
       <nav class="nav-links user-tabs" id="user-navigation" aria-label="Traveler sections" role="tablist">
         <button class="user-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="user-map" data-user-tab="user-map">Map</button>
+        <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-announcements" data-user-tab="user-announcements">Announcements</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-attractions" data-user-tab="user-attractions">Attractions</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-resorts" data-user-tab="user-resorts">Resorts</button>
         <button class="user-tab" type="button" role="tab" aria-selected="false" aria-controls="user-booking" data-user-tab="user-booking">Booking</button>
@@ -46,13 +47,21 @@
           <h1>Explore Montalban attractions</h1>
           <p>Choose a pin to see what is available, then book your visit or open directions.</p>
         </div>
-        <div id="tourist-announcements" class="event-announcements" aria-label="Local event announcements" hidden></div>
         <div class="tourist-map-layout">
           <div id="tourist-map" class="map-view map-view-primary" aria-label="Map of tourist attractions"></div>
           <aside id="tourist-map-details" class="map-attraction-details" aria-live="polite">
             <p>Select an attraction pin to view its details.</p>
           </aside>
         </div>
+      </section>
+
+      <section id="user-announcements" class="section section-alt user-tab-panel" role="tabpanel" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Community updates</p>
+          <h2>Announcements</h2>
+        </div>
+        <div id="tourist-announcements" class="event-announcements" aria-label="Local event announcements" hidden></div>
+        <p id="tourist-announcements-empty" hidden>No announcements at the moment.</p>
       </section>
 
       <section id="user-attractions" class="section user-tab-panel" role="tabpanel" hidden>

@@ -154,6 +154,21 @@ test('saving a shop edit does not delete or overwrite products added by another 
   assert.equal(rows.get('added').name, 'Local product');
 });
 
+test('an empty live attractions table does not restore deleted attractions from a local cache', async () => {
+  const client = {
+    auth: { getSession: async () => ({ data: { session: null } }) },
+    from: () => ({ select: async () => ({ data: [], error: null }) })
+  };
+  const context = vm.createContext({
+    window: { localStorage: { getItem: () => '[{"id":"deleted","name":"Old attraction"}]' } },
+    SUPABASE_URL: 'https://example.supabase.co', SUPABASE_ANON_KEY: 'test',
+    supabase: { createClient: () => client }
+  });
+  vm.runInContext(readFileSync(statePath, 'utf8'), context);
+  const state = await vm.runInContext('loadStateFromSupabase()', context);
+  assert.equal(state.attractions.length, 0);
+});
+
 test('keeps rejected resort booking decisions visible instead of resetting them to Pending', () => {
   const context = vm.createContext({ window: {} });
   vm.runInContext(readFileSync(statePath, 'utf8'), context);

@@ -76,6 +76,8 @@ Admins can upload or remove JPEG, PNG, or WebP images up to 5 MB. Apply
 run `database/shop-product-photos.test.sql` in a disposable project. Photos from
 rejected proposals or deleted products remain in Storage; remove unused images
 manually after confirming no approved product references them.
+If uploads fail, check that `shop-product-photos` exists in the same Supabase
+project used by the live site and that this migration has been applied there.
 
 The role workflow migration keeps existing attractions and products intact.
 Barangay admins submit new attractions and products for municipal approval and
