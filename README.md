@@ -70,6 +70,31 @@ The Netlify build copies only the app pages, app assets, shared frontend, and
 security headers into its publish directory. It does not publish the Android
 project, backend SQL, or Supabase function source.
 
+## Prepare the Android partner app
+
+The Android project opens the partner portal for guides and resort owners. It
+uses the application ID `com.montalban.navigator.guide`; check this ID in Play
+Console before the first release, since it cannot be changed for an existing app.
+
+1. Install Node.js, Android Studio, and the Android SDK, then run `npm install`.
+2. After your latest changes, run `npm run android:sync` to copy the current
+   website files into the Android project.
+3. Run `npm run mobile:android` to open the project in Android Studio. Test both
+   roles on an Android device, including sign-in, signup, and account recovery.
+4. Replace the template launcher icon and splash screen with your app branding.
+   In Android Studio, use **Build > Generate Signed Bundle / APK** to create a
+   signed Android App Bundle. Keep the upload keystore and passwords private and
+   backed up; do not commit them to the repository.
+5. Upload the signed `.aab` to Google Play Console, complete its store listing
+   and required declarations, and submit it for review.
+
+The native project is in `android-partners`; the separate `android` directory
+is not used by these commands. The current guide confirmation and password
+recovery links use the app's local web origin and are not usable from an email
+app. Configure and test a hosted redirect or Android deep link before release,
+including Supabase Auth's allowed redirect URLs. The app needs internet access
+for its backend and externally hosted libraries.
+
 ## Supabase backend setup
 
 1. Create a project at [Supabase](https://supabase.com).
@@ -113,6 +138,37 @@ project, backend SQL, or Supabase function source.
 6. Configure Supabase Auth's site URL and redirect URLs for the Netlify site.
    Test the four portal roles: Municipal Super Admin, Barangay Admin, Resort
    Owner, and Tourist.
+
+### Gmail codes for staff login
+
+Barangay Admin, Guide, and Resort Owner login uses a fresh six-digit Supabase
+email OTP. Passwords remain part of account creation and recovery, but the
+three staff login forms do not create a password-authenticated session.
+
+For local or self-hosted Supabase, enable Google 2-Step Verification on the
+sender account and create a Gmail app password. Set the sender address and app
+password in the environment that starts Supabase; do not put either in the
+repository:
+
+```powershell
+$env:SUPABASE_AUTH_SMTP_USER = "tourism-office@gmail.com"
+$env:SUPABASE_AUTH_SMTP_PASS = "<gmail-app-password>"
+supabase stop
+supabase start
+```
+
+For a hosted Supabase project, open **Authentication > SMTP Settings** and set
+host `smtp.gmail.com`, port `587`, the same Gmail address as sender/username,
+and the Gmail app password. In **Authentication > Email Templates**, copy the
+subject and `supabase/templates/magic-link.html` body into the Magic Link
+template, preserving `{{ .Token }}`. `config.toml` configures local/self-hosted
+Supabase only; it does not update hosted dashboard settings.
+
+The repository raises the configurable hourly allowance to 500 while retaining
+a 30-second resend guard. Email is not literally unlimited: Gmail may enforce a
+daily sending ceiling and Supabase or Google may still reject abusive or
+blocked traffic. Never expose the app password in frontend code, Netlify
+environment variables, SQL, or committed files.
 
 Resort owners self-register, but cannot access owner tools until approved by a
 Municipal Super Admin. Barangay Admins review resort listings and edits for

@@ -68,3 +68,39 @@ test('resort owners can navigate between separate sign-in and application screen
     rmSync(outputDirectory, { recursive: true, force: true });
   }
 });
+
+test('staff logins publish OTP controls without publishing SMTP secrets', () => {
+  const outputDirectory = mkdtempSync(path.join(os.tmpdir(), 'navigator-staff-otp-'));
+  try {
+    buildNetlifySite(outputDirectory);
+    for (const page of [
+      ['apps', 'desktop', 'barangay-admin.html'],
+      ['apps', 'desktop', 'resort-manager.html'],
+      ['apps', 'mobile', 'guide-login.html']
+    ]) {
+      const html = readFileSync(path.join(outputDirectory, ...page), 'utf8');
+      assert.match(html, /email-otp-login\.js/);
+      assert.match(html, /autocomplete="one-time-code"/);
+      assert.match(html, /maxlength="6"/);
+      assert.doesNotMatch(html, /type="password"/);
+    }
+    assert.equal(existsSync(path.join(outputDirectory, 'supabase')), false);
+  } finally {
+    rmSync(outputDirectory, { recursive: true, force: true });
+  }
+});
+
+test('Supabase uses Gmail SMTP secrets and a six-digit OTP template', () => {
+  const config = readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
+  const template = readFileSync(new URL('../supabase/templates/magic-link.html', import.meta.url), 'utf8');
+  assert.match(config, /\[auth\.email\.smtp\]/);
+  assert.match(config, /host = "smtp\.gmail\.com"/);
+  assert.match(config, /pass = "env\(SUPABASE_AUTH_SMTP_PASS\)"/);
+  assert.match(config, /email_sent = 500/);
+  assert.match(config, /max_frequency = "30s"/);
+  assert.match(config, /otp_expiry = 600/);
+  assert.match(config, /template\.magic_link/);
+  assert.match(template, /\{\{\s*\.Token\s*\}\}/);
+  assert.match(template, /10 minutes/i);
+  assert.doesNotMatch(config, /pass = "(?!env\()/);
+});

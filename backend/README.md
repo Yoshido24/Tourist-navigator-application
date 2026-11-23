@@ -80,6 +80,16 @@ manually after confirming no approved product references them.
 If uploads fail, check that `shop-product-photos` exists in the same Supabase
 project used by the live site and that this migration has been applied there.
 
+## Staff email OTP
+
+The Barangay Admin, Guide, and Resort Owner portals use Supabase email OTP.
+`supabase/config.toml` is configured for Gmail SMTP through
+`SUPABASE_AUTH_SMTP_USER` and `SUPABASE_AUTH_SMTP_PASS`; keep both values out of
+source control. Codes expire after 10 minutes, and rapid resend attempts remain
+rate limited. See the root README for local credentials and hosted-dashboard
+setup. Provider quotas still apply even though the previous two-emails-per-hour
+repository setting has been removed.
+
 The role workflow migration keeps existing attractions and products intact.
 Barangay admins submit new attractions and products for municipal approval and
 edit their own published attractions. Attraction locations can be selected on
