@@ -23,6 +23,7 @@ Run these scripts in the Supabase SQL Editor in order:
 12. `database/attraction-photos.sql`
 13. `database/resort-profile.sql`
 14. `database/shop-product-photos.sql`
+15. `database/booking-exports.sql`
 
 `resort-profile.sql` adds resort facilities, hours, Facebook link, house rules,
 map pin and owner-managed closed dates. Closed dates take effect immediately
@@ -98,6 +99,13 @@ against a database that has not received the migration.
 `database/role-workflows.test.sql` contains rollback-only fixtures for a
 disposable test project. Run the migration and test in the same transaction
 when previewing it; the test's final `rollback` undoes both.
+
+`database/booking-exports.sql` adds a security-invoker function used by the
+management portals to export one calendar month. The existing booking RLS
+policies determine which rows each role receives. Run
+`database/booking-exports.test.sql` after the migration in a disposable
+project; it verifies Manila month boundaries and municipal, Barangay Admin,
+and resort-owner scoping, then rolls back its fixtures.
 
 Municipal admins assign one barangay to each guide in the Guides section.
 Existing guides remain unassigned until updated and are not visible or
