@@ -80,6 +80,9 @@ test('Barangay admin shows its logos, header links and sidebar with sign out', (
   assert.match(html, /id="local-shop-image"[^>]*type="file"/);
   assert.match(html, /id="barangay-booking-export"[\s\S]*?data-export-month[\s\S]*?data-export-csv[\s\S]*?data-export-print/);
   assert.match(html, /frontend\/shared\/js\/booking-export\.js/);
+  assert.match(html, /id="barangay-otp-group"[^>]*hidden[\s\S]*?id="barangay-code"[^>]*inputmode="numeric"[^>]*maxlength="6"/);
+  assert.match(html, /frontend\/shared\/js\/email-otp-login\.js/);
+  assert.doesNotMatch(html, /id="barangay-password"/);
 });
 
 test('a different signed-in role sees the login screen without sign out or a sidebar', async () => {

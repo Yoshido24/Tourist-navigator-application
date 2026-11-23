@@ -29,9 +29,12 @@
         <form id="barangay-signin" class="booking-form">
           <label for="barangay-email">Email</label>
           <input id="barangay-email" type="email" autocomplete="username" required />
-          <label for="barangay-password">Password</label>
-          <input id="barangay-password" type="password" autocomplete="current-password" required />
-          <button class="btn btn-primary" type="submit">Sign in</button>
+          <div id="barangay-otp-group" hidden>
+            <label for="barangay-code">Six-digit verification code</label>
+            <input id="barangay-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" />
+          </div>
+          <button id="barangay-signin-submit" class="btn btn-primary" type="submit">Send verification code</button>
+          <button id="barangay-change-email" class="btn btn-secondary" type="button" hidden>Use a different email</button>
           <p id="barangay-signin-message" class="success-message error-message" role="alert" hidden></p>
         </form>
       </section>
@@ -182,6 +185,7 @@
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
     <script src="../../frontend/shared/js/booking-export.js"></script>
+    <script src="../../frontend/shared/js/email-otp-login.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="../../frontend/desktop/features/transport/transport.js"></script>
     <script src="../../frontend/shared/js/navigation.js"></script>

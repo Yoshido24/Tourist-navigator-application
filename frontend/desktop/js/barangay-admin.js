@@ -353,19 +353,32 @@
       return;
     }
     setupLocalForms();
-    signInForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('barangay-email').value.trim(),
-        password: document.getElementById('barangay-password').value
+    if (!window.EmailOtpLogin) {
+      showError(signInMessage, new Error('Email verification did not load. Refresh the page and try again.'));
+    } else {
+      window.EmailOtpLogin.setup({
+        client: supabaseClient,
+        form: signInForm,
+        emailInput: document.getElementById('barangay-email'),
+        codeGroup: document.getElementById('barangay-otp-group'),
+        codeInput: document.getElementById('barangay-code'),
+        submitButton: document.getElementById('barangay-signin-submit'),
+        resetButton: document.getElementById('barangay-change-email'),
+        message: signInMessage,
+        onVerified: async (session) => {
+          if (session.user?.app_metadata?.role !== 'barangay_admin') {
+            await supabaseClient.auth.signOut();
+            showError(signInMessage, new Error('This account is not a Barangay Admin. Ask the Municipal Admin to assign your account.'));
+            return;
+          }
+          try {
+            await loadDashboard();
+          } catch (error) {
+            showError(dashboard.hidden ? signInMessage : accessMessage, error);
+          }
+        }
       });
-      if (error) return showError(signInMessage, error);
-      try {
-        await loadDashboard();
-      } catch (error) {
-        showError(dashboard.hidden ? signInMessage : accessMessage, error);
-      }
-    });
+    }
     signOutButton.addEventListener('click', async () => {
       const { error } = await supabaseClient.auth.signOut();
       if (error) return showError(accessMessage, error);

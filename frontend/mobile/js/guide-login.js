@@ -7,35 +7,38 @@ function setupGuideLoginForm() {
     message.hidden = false;
   };
 
-  loginForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!supabaseClient) {
-      showMessage('The service is not configured. Please contact the Tourism Office.');
-      return;
+  if (!supabaseClient) {
+    showMessage('The service is not configured. Please contact the Tourism Office.');
+    return;
+  }
+  if (!window.EmailOtpLogin) {
+    showMessage('Email verification did not load. Refresh the page and try again.');
+    return;
+  }
+  window.EmailOtpLogin.setup({
+    client: supabaseClient,
+    form: loginForm,
+    emailInput: document.getElementById('guide-auth-email'),
+    codeGroup: document.getElementById('guide-auth-otp-group'),
+    codeInput: document.getElementById('guide-auth-code'),
+    submitButton: document.getElementById('guide-auth-login-submit'),
+    resetButton: document.getElementById('guide-auth-change-email'),
+    message,
+    onVerified: async (session) => {
+      // Only guides that Admin approved have a row in public.guides (RLS exposes just their own).
+      const { data: guide, error } = await supabaseClient
+        .from('guides')
+        .select('id, status')
+        .eq('auth_user_id', session.user.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!guide || guide.status === 'Pending') {
+        await supabaseClient.auth.signOut();
+        showMessage('Your application is still pending Admin approval.');
+        return;
+      }
+      window.location.href = 'guide.html';
     }
-    const email = document.getElementById('guide-auth-email').value.trim();
-    const password = document.getElementById('guide-auth-password').value;
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error || !data?.user) {
-      showMessage(error?.message === 'Email not confirmed'
-        ? 'Confirm your email first using the link we sent you.'
-        : 'Login failed. Check your email and password.');
-      return;
-    }
-
-    // Only guides that Admin approved have a row in public.guides (RLS exposes just their own).
-    const { data: guide } = await supabaseClient
-      .from('guides')
-      .select('id, status')
-      .eq('auth_user_id', data.user.id)
-      .maybeSingle();
-    if (!guide || guide.status === 'Pending') {
-      await supabaseClient.auth.signOut();
-      showMessage('Your application is still pending Admin approval.');
-      return;
-    }
-    window.location.href = 'guide.html';
   });
 
   document.getElementById('guide-auth-reset')?.addEventListener('click', async () => {

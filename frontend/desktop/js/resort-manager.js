@@ -378,19 +378,37 @@
       button.addEventListener('click', () => addServiceRow(button.dataset.addService));
     });
 
-    signIn?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('owner-login-email').value.trim(),
-        password: document.getElementById('owner-login-password').value
+    if (signIn && !window.EmailOtpLogin) {
+      setMessage('owner-login-error', 'Email verification did not load. Refresh the page and try again.', true);
+    } else if (signIn) {
+      window.EmailOtpLogin.setup({
+        client: supabaseClient,
+        form: signIn,
+        emailInput: document.getElementById('owner-login-email'),
+        codeGroup: document.getElementById('owner-login-otp-group'),
+        codeInput: document.getElementById('owner-login-code'),
+        submitButton: document.getElementById('owner-login-submit'),
+        resetButton: document.getElementById('owner-login-change-email'),
+        message: document.getElementById('owner-login-error'),
+        onVerified: async (session) => {
+          const { data: manager, error } = await supabaseClient.from('resort_managers')
+            .select('name')
+            .eq('auth_user_id', session.user.id)
+            .maybeSingle();
+          if (error) throw error;
+          if (!manager) {
+            await supabaseClient.auth.signOut();
+            setMessage('owner-login-error', 'Your owner account is not approved yet. Contact the Municipal Admin.', true);
+            return;
+          }
+          try {
+            await loadOwnerDashboard();
+          } catch (loadError) {
+            showDashboardError(loadError);
+          }
+        }
       });
-      if (error) return setMessage('owner-login-error', error.message, true);
-      try {
-        await loadOwnerDashboard();
-      } catch (error) {
-        showDashboardError(error);
-      }
-    });
+    }
     signUp?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const errorBox = document.getElementById('owner-signup-error');

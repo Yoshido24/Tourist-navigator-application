@@ -48,12 +48,15 @@
           <form id="resort-signin" class="booking-form dashboard-card partner-auth-card">
             <p class="eyebrow">Welcome back</p>
             <h2>Sign in</h2>
-            <p>Use your owner account email and password.</p>
+            <p>Enter your owner email, then verify with the six-digit code we send.</p>
             <label for="owner-login-email">Email</label>
             <input id="owner-login-email" type="email" autocomplete="username" required />
-            <label for="owner-login-password">Password</label>
-            <input id="owner-login-password" type="password" autocomplete="current-password" required />
-            <button class="btn btn-primary" type="submit">Sign in</button>
+            <div id="owner-login-otp-group" hidden>
+              <label for="owner-login-code">Six-digit verification code</label>
+              <input id="owner-login-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" />
+            </div>
+            <button id="owner-login-submit" class="btn btn-primary" type="submit">Send verification code</button>
+            <button id="owner-login-change-email" class="btn btn-secondary" type="button" hidden>Use a different email</button>
             <p id="owner-login-error" class="success-message error-message" role="alert" hidden></p>
             <p class="partner-auth-switch">Need an account? <a href="resort-signup.html">Apply here</a>.</p>
           </form>
@@ -166,6 +169,7 @@
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
     <script src="../../frontend/shared/js/booking-export.js"></script>
+    <script src="../../frontend/shared/js/email-otp-login.js"></script>
     <script src="../../frontend/desktop/js/resort-manager.js"></script>
   </body>
 </html>

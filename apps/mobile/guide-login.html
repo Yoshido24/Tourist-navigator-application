@@ -19,7 +19,7 @@
         <div class="hero-copy">
           <p class="eyebrow">Approved guides</p>
           <h1>Log in to manage your assigned tours.</h1>
-          <p class="hero-text">Use the email and password you registered with. Admin must approve your application first.</p>
+          <p class="hero-text">Enter your email, then verify the six-digit code we send. Admin must approve your application first.</p>
         </div>
         <div class="hero-card">
           <div class="section-heading compact-heading">
@@ -29,9 +29,12 @@
           <form id="guide-auth-login-form" class="booking-form">
             <label for="guide-auth-email">Email address</label>
             <input id="guide-auth-email" type="email" autocomplete="username" required />
-            <label for="guide-auth-password">Password</label>
-            <input id="guide-auth-password" type="password" autocomplete="current-password" required />
-            <button class="btn btn-primary" type="submit">Log in</button>
+            <div id="guide-auth-otp-group" hidden>
+              <label for="guide-auth-code">Six-digit verification code</label>
+              <input id="guide-auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" />
+            </div>
+            <button id="guide-auth-login-submit" class="btn btn-primary" type="submit">Send verification code</button>
+            <button id="guide-auth-change-email" class="btn btn-secondary" type="button" hidden>Use a different email</button>
             <button class="btn btn-secondary" type="button" id="guide-auth-reset">Forgot password?</button>
             <p id="guide-auth-login-message" class="success-message" hidden></p>
           </form>
@@ -42,6 +45,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/shared/js/email-otp-login.js"></script>
     <script src="../../frontend/mobile/js/guide-login.js"></script>
   </body>
 </html>
