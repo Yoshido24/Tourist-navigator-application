@@ -3,6 +3,48 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('map shows attraction and resort pins and opens resort details', () => {
+  const markers = [];
+  let resortClick;
+  let viewResort;
+  let selectedResort;
+  const mapElement = { innerHTML: '', appendChild() {}, querySelectorAll: () => [] };
+  const details = { innerHTML: '', querySelector: () => ({ addEventListener(_event, handler) { viewResort = handler; } }) };
+  const document = {
+    getElementById(id) {
+      return { 'tourist-map': mapElement, 'tourist-map-details': details, 'user-resorts': {} }[id] || null;
+    },
+    createElement() { return { appendChild() {}, setAttribute() {}, addEventListener() {} }; }
+  };
+  const map = { setView() { return this; }, fitBounds() {}, remove() {} };
+  const window = {
+    L: {
+      map: () => map,
+      tileLayer: () => ({ addTo() {} }),
+      marker: () => ({
+        addTo() { return this; },
+        bindTooltip(name) { markers.push(name); },
+        bindPopup() {}, on(_event, handler) { resortClick = handler; }, openPopup() {}
+      })
+    },
+    UserResortsFeature: { select(resort) { selectedResort = resort; } }
+  };
+  const context = vm.createContext({
+    document, window, touristMapInstance: null, escapeHtml: String,
+    getAttractionCoords: () => [14.7, 121.1], showUserTab() {}
+  });
+  vm.runInContext(readFileSync(new URL('./map.js', import.meta.url), 'utf8'), context);
+  window.UserMapFeature.render({
+    attractions: [{ id: '1', name: 'Falls', category: 'Waterfall / Natural Attraction' }, { id: '2', name: 'Trail', category: 'Hiking' }],
+    showcases: [], announcements: [],
+    resorts: [{ id: 'r', name: 'Pool', latitude: 14.7, longitude: 121.1 }, { id: 'missing', name: 'No coordinates', latitude: null, longitude: null }]
+  });
+  assert.deepEqual(markers, ['Falls', 'Trail', 'Pool']);
+  resortClick();
+  viewResort();
+  assert.equal(selectedResort.id, 'r');
+});
+
 function element(tagName = 'div') {
   return {
     tagName,

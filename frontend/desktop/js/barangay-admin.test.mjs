@@ -3,6 +3,47 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
 
+test('barangay overview counts only bookings in assigned areas', async () => {
+  let start;
+  const elements = new Map();
+  const getElementById = (id) => {
+    if (!elements.has(id)) elements.set(id, {
+      hidden: true, textContent: '', innerHTML: '', value: '', dataset: {},
+      addEventListener() {}, querySelectorAll: () => [], reset() {}
+    });
+    return elements.get(id);
+  };
+  const data = {
+    barangay_admin_assignments: [{ barangay_id: 'area' }],
+    barangays: [{ id: 'area', name: 'Area' }],
+    bookings: [
+      { id: '1', barangay_id: 'area', status: 'Pending' },
+      { id: '2', barangay_id: 'area', status: 'Approved' },
+      { id: '3', barangay_id: 'other', status: 'Pending' }
+    ],
+    attractions: [{ id: 'a', barangay_id: 'area', name: 'Falls' }],
+    guides: [], resort_submissions: [], attraction_submissions: [], shop_submissions: []
+  };
+  const context = vm.createContext({
+    document: { getElementById, querySelectorAll: () => [], addEventListener: (_, fn) => { start = fn; } },
+    window: {}, escapeHtml: String,
+    getAuthSession: async () => ({ user: { id: 'admin', app_metadata: { role: 'barangay_admin' } } }),
+    supabaseClient: {
+      from(table) {
+        return {
+          select() { return this; }, eq() { return this; }, in() { return this; }, order() { return this; },
+          then(resolve) { resolve({ data: data[table], error: null }); }
+        };
+      }
+    }
+  });
+  vm.runInContext(readFileSync(new URL('./barangay-admin.js', import.meta.url), 'utf8'), context);
+  await start();
+  assert.equal(getElementById('barangay-stat-bookings').textContent, '2');
+  assert.equal(getElementById('barangay-stat-pending').textContent, '1');
+  assert.equal(getElementById('barangay-stat-attractions').textContent, '1');
+});
+
 test('editing a barangay attraction opens its populated form', async () => {
   let start;
   let edit;

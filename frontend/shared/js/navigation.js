@@ -24,6 +24,11 @@
         });
       });
     });
+    document.querySelectorAll('[data-barangay-tab-target]').forEach((button) => {
+      button.addEventListener('click', () => {
+        tabs.find((tab) => tab.dataset.barangayTab === button.dataset.barangayTabTarget)?.click();
+      });
+    });
   }
   if (!document.body.classList.contains('resort-manager-portal')) return;
 

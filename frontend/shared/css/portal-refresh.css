@@ -250,6 +250,10 @@
   display: none;
 }
 
+.admin-portal-return {
+  margin-bottom: 1.5rem;
+}
+
 .navigation-enhanced:not(.barangay-admin-portal) {
   padding-right: 16rem;
 }

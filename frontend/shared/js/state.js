@@ -240,6 +240,7 @@ async function fetchOptionalSupabaseTable(tableName) {
     return await fetchSupabaseTable(tableName);
   } catch (error) {
     console.warn(`Unable to load optional Supabase table "${tableName}".`, error);
+    if (window.lastLoadErrors) window.lastLoadErrors[tableName] = error;
     return [];
   }
 }
@@ -295,6 +296,7 @@ async function persistSupabaseCollection(tableName, items, options = {}) {
 }
 
 async function loadStateFromSupabase() {
+  window.lastLoadErrors = {};
   const role = getSessionRole(await getAuthSession());
   // Row Level Security hides these tables from anon visitors, so only ask for what the role may read.
   const empty = Promise.resolve([]);

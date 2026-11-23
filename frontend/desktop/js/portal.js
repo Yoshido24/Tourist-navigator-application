@@ -279,6 +279,7 @@ async function requireAdminSession() {
         <label for="admin-password">Password</label>
         <input id="admin-password" type="password" autocomplete="current-password" required />
         <button class="btn btn-primary" type="submit">Sign in</button>
+        <a class="btn btn-secondary" href="admin-access.html">Back to admin portal</a>
         <p class="success-message error-message" role="alert" hidden></p>
       </form>`;
     document.body.appendChild(overlay);

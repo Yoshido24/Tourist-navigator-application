@@ -222,6 +222,10 @@
   }
 
   async function loadOwnerDashboard() {
+    ['owner-overview-listing', 'owner-overview-bookings', 'owner-overview-total'].forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = '—';
+    });
     const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
     if (sessionError) throw sessionError;
     const user = sessionData.session?.user;
@@ -257,6 +261,8 @@
       setMessage('owner-account-status', application?.status === 'Rejected'
         ? `Your owner account was rejected. ${application.review_note || 'Contact the Municipal Admin for details.'}`
         : 'Your account is waiting for Municipal Admin approval.');
+      const listingSummary = document.getElementById('owner-overview-listing');
+      if (listingSummary) listingSummary.textContent = 'Account approval required';
       document.getElementById('owner-listing').innerHTML = '';
       document.getElementById('owner-edit-listing').hidden = true;
       document.getElementById('owner-bookings').innerHTML = '';
@@ -268,7 +274,7 @@
     const [barangays, submissionsResult, bookingsResult] = await Promise.all([
       loadBarangays(),
       supabaseClient.from('resort_submissions').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }),
-      supabaseClient.from('bookings').select('*').eq('target_type', 'resort').order('created_at', { ascending: false })
+      supabaseClient.from('bookings').select('*').eq('target_type', 'resort').eq('resort_owner_id', user.id).order('created_at', { ascending: false })
     ]);
     if (submissionsResult.error) throw submissionsResult.error;
     if (bookingsResult.error) throw bookingsResult.error;
@@ -289,6 +295,7 @@
     setText('owner-overview-listing', submissionsResult.data[0]?.status || (application ? 'Awaiting first submission' : 'No listing yet.'));
     const pendingCount = bookingsResult.data.filter((booking) => booking.status === 'Pending').length;
     setText('owner-overview-bookings', String(pendingCount));
+    setText('owner-overview-total', String(bookingsResult.data.length));
     setText('resort-bookings-tab', pendingCount ? `Bookings (${pendingCount})` : 'Bookings');
     document.getElementById('owner-listing-barangay').innerHTML = barangays.map((item) =>
       `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)}</option>`
@@ -373,6 +380,9 @@
         next.click();
         next.focus();
       });
+    });
+    document.querySelectorAll('[data-resort-tab-target]').forEach((button) => {
+      button.addEventListener('click', () => document.getElementById(button.dataset.resortTabTarget)?.click());
     });
     document.querySelectorAll('[data-add-service]').forEach((button) => {
       button.addEventListener('click', () => addServiceRow(button.dataset.addService));

@@ -123,6 +123,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupImageLightbox();
   appState = await loadState();
   await renderApp(appState);
+  if (document.getElementById('user-resorts')) {
+    const resortId = new URLSearchParams(window.location.search).get('resort');
+    const resort = (appState.resorts || []).find((item) => item.id === resortId);
+    if (resort) {
+      showUserTab('user-resorts');
+      window.UserResortsFeature?.select(resort);
+    }
+  }
 
   let refreshTimer = null;
   const refreshWhenVisible = () => {

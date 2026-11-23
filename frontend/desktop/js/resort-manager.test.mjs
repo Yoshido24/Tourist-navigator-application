@@ -19,11 +19,12 @@ test('resort owner can switch between listing and bookings', () => {
   }));
   const panels = [...html.matchAll(/<[^>]*id="(resort-(?:overview|listing|bookings|account|settings)-panel)"[^>]*>/g)]
     .map((match) => ({ id: match[1], hidden: false }));
+  const shortcut = { dataset: { resortTabTarget: 'resort-bookings-tab' }, addEventListener(_event, handler) { this.click = handler; } };
   let start;
   const context = vm.createContext({
     document: {
-      getElementById: () => null,
-      querySelectorAll: (selector) => selector === '[data-resort-tab]' ? tabs : selector === '[data-resort-panel]' ? panels : [],
+      getElementById: (id) => id === 'resort-bookings-tab' ? tabs.find((tab) => tab.dataset.resortTab === 'resort-bookings-panel') : null,
+      querySelectorAll: (selector) => selector === '[data-resort-tab]' ? tabs : selector === '[data-resort-panel]' ? panels : selector === '[data-resort-tab-target]' ? [shortcut] : [],
       addEventListener: (_event, handler) => { start = handler; }
     },
     supabaseClient: {},
@@ -33,7 +34,7 @@ test('resort owner can switch between listing and bookings', () => {
   start();
   assert.equal(tabs.length, 5);
   assert.equal(panels.length, 5);
-  tabs.find((tab) => tab.dataset.resortTab === 'resort-bookings-panel').click();
+  shortcut.click();
   assert.equal(panels.find((panel) => panel.id === 'resort-listing-panel').hidden, true);
   assert.equal(panels.find((panel) => panel.id === 'resort-bookings-panel').hidden, false);
   assert.equal(tabs.find((tab) => tab.dataset.resortTab === 'resort-bookings-panel').attributes['aria-selected'], 'true');
@@ -51,8 +52,10 @@ test('shows a dashboard loading error after restoring a signed-in session', asyn
   });
   const elements = Object.fromEntries([
     'resort-signin', 'resort-auth-panel', 'resort-dashboard', 'resort-signout',
-    'owner-login-error', 'owner-account-status'
+    'owner-login-error', 'owner-account-status', 'owner-overview-listing', 'owner-overview-total'
   ].map((id) => [id, element()]));
+  elements['owner-overview-listing'].textContent = 'Approved';
+  elements['owner-overview-total'].textContent = '10';
   let start;
   const context = vm.createContext({
     window: {},
@@ -72,6 +75,8 @@ test('shows a dashboard loading error after restoring a signed-in session', asyn
   assert.equal(elements['resort-dashboard'].hidden, false);
   assert.equal(elements['owner-account-status'].hidden, false);
   assert.equal(elements['owner-account-status'].textContent, 'Connection failed');
+  assert.equal(elements['owner-overview-listing'].textContent, '—');
+  assert.equal(elements['owner-overview-total'].textContent, '—');
 });
 
 test('resort owners can edit services while their listing awaits review', async () => {
@@ -79,6 +84,7 @@ test('resort owners can edit services while their listing awaits review', async 
       return {
         hidden: true, textContent: '', innerHTML: '', value: '', dataset: {},
         classList: { toggle() {} },
+        querySelectorAll: () => [],
         addEventListener(event, handler) { this[event] = handler; },
         replaceChildren() { this.children = []; },
         appendChild(child) { (this.children ||= []).push(child); }
@@ -89,7 +95,7 @@ test('resort owners can edit services while their listing awaits review', async 
       'owner-account-status', 'owner-dashboard-title', 'owner-listing', 'owner-listing-photos', 'owner-edit-listing',
       'owner-listing-form', 'owner-cancel-edit', 'owner-listing-name', 'owner-listing-barangay',
       'owner-listing-address', 'owner-listing-description', 'owner-listing-images', 'owner-existing-photos', 'owner-service-rows',
-      'owner-listing-error', 'owner-bookings'
+      'owner-listing-error', 'owner-bookings', 'owner-overview-bookings', 'owner-overview-total'
     ];
     const elements = Object.fromEntries(ids.map((id) => [id, element()]));
     let start;
@@ -149,7 +155,14 @@ test('resort owners can edit services while their listing awaits review', async 
             })
           })
         };
-        if (table === 'bookings') return { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) };
+        if (table === 'bookings') return { select: () => ({ eq: () => ({
+          eq: (field, value) => {
+            assert.equal(field, 'resort_owner_id');
+            assert.equal(value, 'owner');
+            return { order: async () => ({ data: [{ status: 'Pending' }, { status: 'Approved' }], error: null }) };
+          },
+          order: async () => ({ data: [{ status: 'Pending' }, { status: 'Approved' }], error: null })
+        }) }) };
         throw new Error(`Unexpected table: ${table}`);
       }
     };
@@ -174,6 +187,8 @@ test('resort owners can edit services while their listing awaits review', async 
     vm.runInContext(readFileSync(new URL('./resort-manager.js', import.meta.url), 'utf8'), context);
     start();
     await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(elements['owner-overview-total'].textContent, '2');
+    assert.equal(elements['owner-overview-bookings'].textContent, '1');
     assert.deepEqual(sidebar, [true]);
     assert.equal(elements['owner-edit-listing'].hidden, false);
     elements['owner-edit-listing'].click();
@@ -261,7 +276,7 @@ test('owner must pick a reason to decline, and sees the estimated total and pend
         if (table === 'resort_manager_applications') return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) };
         if (table === 'resort_submissions') return { select: () => ({ eq: () => ({ order: async () => ({ data: [{ status: 'Pending', name: 'R', services: [], images: [] }], error: null }) }) }) };
         return {
-          select: () => ({ eq: () => ({ order: async () => ({ data: [booking], error: null }) }) }),
+          select: () => ({ eq: () => ({ eq: () => ({ order: async () => ({ data: [booking], error: null }) }) }) }),
           update: (value) => ({ eq: async () => { updates.push(value); return { error: null }; } })
         };
       }
@@ -326,7 +341,7 @@ test('owner closes dates through the RPC and submits the profile with the chosen
           select: () => ({ eq: () => ({ order: async () => ({ data: [approved], error: null }) }) }),
           insert: async (value) => { inserts.push(value); return { error: null }; }
         };
-        return { select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) };
+        return { select: () => ({ eq: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }) }) };
       }
     }
   });

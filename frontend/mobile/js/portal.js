@@ -35,9 +35,21 @@ function renderGuidePage(state) {
       .filter((booking) => currentGuide && booking.guide_id === currentGuide && ['Assigned', 'Confirmed', 'Ongoing'].includes(booking.status))
       .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
     const completedCount = state.bookings.filter((booking) => currentGuide && booking.guide_id === currentGuide && booking.status === 'Completed').length;
+    const activeStat = document.getElementById('guide-stat-active');
+    const completedStat = document.getElementById('guide-stat-completed');
+    const saveFailed = Boolean(window.lastSyncErrors?.bookings);
+    const bookingsUnavailable = Boolean(window.lastLoadErrors?.bookings) || saveFailed;
+    if (activeStat) activeStat.textContent = bookingsUnavailable ? '—' : String(assignedBookings.length);
+    if (completedStat) completedStat.textContent = bookingsUnavailable ? '—' : String(completedCount);
     const nextTourName = document.getElementById('guide-next-tour-name');
     const nextTourDetails = document.getElementById('guide-next-tour-details');
-    if (assignedBookings.length) {
+    if (bookingsUnavailable) {
+      overview.textContent = saveFailed
+        ? 'Changes could not be saved. Please refresh and try again.'
+        : 'Tours could not be loaded. Please refresh and try again.';
+      if (nextTourName) nextTourName.textContent = 'Tours unavailable';
+      if (nextTourDetails) nextTourDetails.textContent = 'Please refresh and try again.';
+    } else if (assignedBookings.length) {
       const next = assignedBookings[0];
       overview.textContent = `Next: ${next.attractionName || 'Tour'} on ${next.date}${next.time ? ` at ${next.time}` : ''} • ${assignedBookings.length} upcoming, ${completedCount} completed.`;
       if (nextTourName) nextTourName.textContent = next.attractionName || 'Assigned tour';

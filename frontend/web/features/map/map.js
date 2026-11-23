@@ -135,7 +135,11 @@
     const showcases = (Array.isArray(state.showcases) ? state.showcases : [])
       .map((showcase) => ({ showcase, coords: getShowcaseCoords(showcase) }))
       .filter(({ coords }) => coords);
-    if (!attractions.length && !showcases.length) {
+    const resorts = (Array.isArray(state.resorts) ? state.resorts : [])
+      .filter((resort) => resort.latitude != null && resort.longitude != null)
+      .map((resort) => ({ resort, coords: getShowcaseCoords(resort) }))
+      .filter(({ coords }) => coords);
+    if (!attractions.length && !showcases.length && !resorts.length) {
       if (detailsElement) detailsElement.innerHTML = '<p>No places have been published yet. Please check back soon.</p>';
       return;
     }
@@ -143,7 +147,7 @@
       detailsElement.innerHTML = '<p class="map-loading">Loading map pins. Select a pin when the map is ready.</p>';
     }
 
-    const firstCoords = attractions.length ? getAttractionCoords(attractions[0]) : showcases[0].coords;
+    const firstCoords = attractions.length ? getAttractionCoords(attractions[0]) : (showcases[0] || resorts[0]).coords;
     const mapCanvas = document.createElement('div');
     mapCanvas.className = 'leaflet-map';
     mapCanvas.id = 'tourist-map-canvas';
@@ -158,7 +162,7 @@
     const bounds = [];
     const pinPanel = document.createElement('div');
     pinPanel.className = 'map-pin-panel';
-    pinPanel.innerHTML = '<strong class="map-pin-panel-title">All map pins</strong>';
+    pinPanel.innerHTML = '<strong class="map-pin-panel-title">Map pins</strong>';
     attractions.forEach((attraction) => {
       const coords = getAttractionCoords(attraction);
       bounds.push(coords);
@@ -166,7 +170,7 @@
       marker.bindTooltip(attraction.name);
       marker.bindPopup(createAttractionPopup(attraction), { maxWidth: 340 });
       marker.on('click', () => selectAttraction(attraction, marker));
-      addPinButton(attraction.id, attraction.name, false, () => selectAttraction(attraction, marker));
+      addPinButton(attraction.id, attraction.name, 'attraction', () => selectAttraction(attraction, marker));
     });
     showcases.forEach(({ showcase, coords }) => {
       bounds.push(coords);
@@ -174,18 +178,26 @@
       marker.bindTooltip(showcase.name);
       marker.bindPopup(createShowcasePopup(showcase), { maxWidth: 340 });
       marker.on('click', () => selectShowcase(showcase, coords, marker));
-      addPinButton(showcase.id, showcase.name, true, () => selectShowcase(showcase, coords, marker));
+      addPinButton(showcase.id, showcase.name, 'showcase', () => selectShowcase(showcase, coords, marker));
+    });
+    resorts.forEach(({ resort, coords }) => {
+      bounds.push(coords);
+      const marker = window.L.marker(coords).addTo(map);
+      marker.bindTooltip(resort.name);
+      marker.bindPopup(createShowcasePopup(resort), { maxWidth: 340 });
+      marker.on('click', () => selectResort(resort, coords, marker));
+      addPinButton(resort.id, resort.name, 'resort', () => selectResort(resort, coords, marker));
     });
     if (bounds.length > 1) map.fitBounds(bounds, { padding: [30, 30] });
 
-    function addPinButton(id, name, isShowcase, onClick) {
+    function addPinButton(id, name, kind, onClick) {
       const pin = document.createElement('button');
       pin.type = 'button';
       pin.className = 'map-pin-button';
       pin.setAttribute('data-id', id);
-      pin.setAttribute('data-kind', isShowcase ? 'showcase' : 'attraction');
-      pin.setAttribute('aria-label', `Show ${isShowcase ? 'showcase place' : 'attraction'} ${name} on the map`);
-      pin.innerHTML = `<span class="map-pin-icon" aria-hidden="true">📍</span><span>${isShowcase ? 'Showcase · ' : ''}${escapeHtml(name)}</span>`;
+      pin.setAttribute('data-kind', kind);
+      pin.setAttribute('aria-label', `Show ${kind === 'showcase' ? 'showcase place' : kind} ${name} on the map`);
+      pin.innerHTML = `<span class="map-pin-icon" aria-hidden="true">📍</span><span>${kind === 'showcase' ? 'Showcase · ' : kind === 'resort' ? 'Resort · ' : ''}${escapeHtml(name)}</span>`;
       pin.addEventListener('click', onClick);
       pinPanel.appendChild(pin);
     }
@@ -236,6 +248,29 @@
           <p>${escapeHtml(showcase.description || '')}</p>
         `;
       }
+    }
+
+    function selectResort(resort, coords, marker) {
+      map.setView(coords, 16);
+      marker.openPopup();
+      mapElement.querySelectorAll('.map-pin-button').forEach((button) => {
+        button.classList.toggle('active', button.dataset.kind === 'resort' && button.dataset.id === resort.id);
+      });
+      if (!detailsElement) return;
+      const services = Array.isArray(resort.services) ? resort.services : [];
+      detailsElement.innerHTML = `
+        <h3>${escapeHtml(resort.name)}</h3>
+        <p>${escapeHtml(resort.description || 'Contact the resort for details.')}</p>
+        <ul>${services.map((service) => `<li>${escapeHtml(service.name)} — ₱${Number(service.fee).toLocaleString('en-PH')} / ${escapeHtml(service.pricingUnit)}</li>`).join('')}</ul>
+        <button class="btn btn-secondary map-view-resort" type="button">View resort</button>`;
+      detailsElement.querySelector('.map-view-resort')?.addEventListener('click', () => {
+        if (!document.getElementById('user-resorts')) {
+          window.location.href = `user.html?resort=${encodeURIComponent(resort.id)}`;
+          return;
+        }
+        showUserTab('user-resorts');
+        window.UserResortsFeature?.select(resort);
+      });
     }
   }
 

@@ -45,13 +45,22 @@
             <h1 id="barangay-title">Assigned barangays</h1>
             <p id="barangay-access-message" role="status"></p>
           </header>
-          <section id="barangay-overview" class="barangay-tab-panel" data-barangay-tab-panel="overview" role="tabpanel" hidden>
+          <section id="barangay-overview" class="barangay-tab-panel" data-barangay-tab-panel="overview" role="tabpanel">
             <div class="section-heading">
               <h2>Overview</h2>
               <p>Manage local attractions, product proposals, bookings and resort reviews for your assigned barangay.</p>
             </div>
+            <div class="stats-row">
+              <div class="stat-card"><strong id="barangay-stat-bookings">—</strong><span>Total bookings</span></div>
+              <div class="stat-card"><strong id="barangay-stat-pending">—</strong><span>New bookings</span></div>
+              <div class="stat-card"><strong id="barangay-stat-attractions">—</strong><span>Attractions</span></div>
+            </div>
+            <div class="hero-actions">
+              <button class="btn btn-primary" type="button" data-barangay-tab-target="bookings">Review bookings</button>
+              <button class="btn btn-secondary" type="button" data-barangay-tab-target="attractions">View attractions</button>
+            </div>
           </section>
-          <section id="barangay-add-attraction" class="barangay-tab-panel" data-barangay-tab-panel="add-attraction" role="tabpanel">
+          <section id="barangay-add-attraction" class="barangay-tab-panel" data-barangay-tab-panel="add-attraction" role="tabpanel" hidden>
             <div class="section-heading">
               <h2>Add attraction</h2>
               <p>New attractions are published after municipal approval. Changes to existing attractions are saved directly.</p>
@@ -170,8 +179,8 @@
         </div>
         <aside id="barangay-sidebar" class="barangay-sidebar">
           <nav aria-label="Barangay sections" role="tablist" aria-orientation="vertical">
-            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-overview" data-barangay-tab="overview">Overview</button>
-            <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="barangay-add-attraction" data-barangay-tab="add-attraction">Add attraction</button>
+            <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="barangay-overview" data-barangay-tab="overview">Overview</button>
+            <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-add-attraction" data-barangay-tab="add-attraction">Add attraction</button>
             <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-add-product" data-barangay-tab="add-product">Add product</button>
             <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-attractions" data-barangay-tab="attractions">Attractions</button>
             <button class="admin-tab" type="button" role="tab" aria-selected="false" aria-controls="barangay-bookings-panel" data-barangay-tab="bookings">Bookings</button>

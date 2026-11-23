@@ -3,6 +3,32 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 
+test('municipal admins can return to the admin portal before and after signing in', async () => {
+  const html = readFileSync(new URL('../../../apps/desktop/admin.html', import.meta.url), 'utf8');
+  assert.match(html, /<main[^>]*>[\s\S]*?<a[^>]*href="admin-access\.html"[^>]*>Back to admin portal<\/a>/);
+
+  const overlay = {
+    style: {},
+    querySelector(selector) {
+      if (selector === 'form') return { addEventListener() {} };
+      return {};
+    }
+  };
+  const document = {
+    body: { appendChild() {} },
+    createElement: () => overlay,
+    addEventListener() {}
+  };
+  const context = vm.createContext({
+    document, window: {}, supabaseClient: {},
+    getAuthSession: async () => null, getSessionRole: () => 'anon'
+  });
+  vm.runInContext(readFileSync(new URL('./portal.js', import.meta.url), 'utf8'), context);
+  context.requireAdminSession();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.match(overlay.innerHTML, /<a[^>]*href="admin-access\.html"[^>]*>Back to admin portal<\/a>/);
+});
+
 test('local admin menu opens only the selected management section', () => {
   const html = readFileSync(new URL('../../../apps/desktop/admin.html', import.meta.url), 'utf8');
   assert.match(html, /<details class="local-admin-menu">/);

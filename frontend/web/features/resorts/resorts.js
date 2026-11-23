@@ -153,6 +153,10 @@
   }
 
   window.UserResortsFeature = {
+    select(resort) {
+      currentResort = resort;
+      showResortDetails(resort);
+    },
     render(state) {
       setupBookingForm();
       renderResorts(state);

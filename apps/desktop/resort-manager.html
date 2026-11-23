@@ -70,7 +70,12 @@
         <section id="resort-overview-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" aria-labelledby="resort-overview-tab">
           <div class="dashboard-grid">
             <article class="dashboard-card"><h3>Listing status</h3><p id="owner-overview-listing">No listing yet.</p></article>
-            <article class="dashboard-card"><h3>Pending booking requests</h3><p id="owner-overview-bookings">0</p></article>
+            <article class="dashboard-card"><h3>Pending booking requests</h3><p id="owner-overview-bookings">—</p></article>
+            <article class="dashboard-card"><h3>Total bookings</h3><p id="owner-overview-total">—</p></article>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-resort-tab-target="resort-bookings-tab">Review bookings</button>
+            <button class="btn btn-secondary" type="button" data-resort-tab-target="resort-listing-tab">View listing</button>
           </div>
         </section>
         <section id="resort-account-panel" class="admin-tab-panel" data-resort-panel role="tabpanel" hidden>

@@ -50,6 +50,10 @@ and layout primitives. Portal component styles live in each portal's
 
 Open [index.html](index.html) to enter the project from the public web app. It is responsive at phone, tablet, and desktop widths. The root `index.html`, `user.html`, `guide.html`, and `admin.html` remain as redirects so existing bookmarks still work.
 
+Tourists can filter the attraction list by category, including resorts.
+Barangay admins, resort owners, and guides see role-specific
+overview counts; these are booking and tour counts, not live occupancy.
+
 Each portal keeps its own browser login, so signing into another role does not
 replace it. Existing users must sign in once after this change. Separate browser
 profiles are still needed to use multiple accounts in the same portal.

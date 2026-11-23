@@ -18,6 +18,9 @@
   }
 
   async function loadDashboard() {
+    ['barangay-stat-bookings', 'barangay-stat-pending', 'barangay-stat-attractions'].forEach((id) => {
+      document.getElementById(id).textContent = '—';
+    });
     const session = await getAuthSession();
     const user = session?.user;
     if (!user || user.app_metadata?.role !== 'barangay_admin') {
@@ -64,6 +67,10 @@
 
     const barangays = new Map(barangaysResult.data.map((item) => [item.id, item.name]));
     const attractions = new Map(attractionsResult.data.map((item) => [item.id, item.name]));
+    const localBookings = bookingsResult.data.filter((booking) => ids.includes(booking.barangay_id));
+    document.getElementById('barangay-stat-bookings').textContent = String(localBookings.length);
+    document.getElementById('barangay-stat-pending').textContent = String(localBookings.filter((booking) => booking.status === 'Pending').length);
+    document.getElementById('barangay-stat-attractions').textContent = String(attractionsResult.data.length);
     document.getElementById('barangay-title').textContent = barangaysResult.data.map((item) => item.name).join(', ');
     renderBookings(bookingsResult.data, attractions, guidesResult.data);
     renderSubmissions(submissionsResult.data, barangays);

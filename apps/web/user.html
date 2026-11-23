@@ -75,14 +75,14 @@
           <button class="btn btn-secondary" type="button" data-attraction-category="hiking" aria-pressed="false">Hiking</button>
           <button class="btn btn-secondary" type="button" data-attraction-category="camping" aria-pressed="false">Camping</button>
           <button class="btn btn-secondary" type="button" data-attraction-category="historical" aria-pressed="false">Historical</button>
-          <button class="btn btn-secondary" type="button" data-attraction-category="resorts" aria-pressed="false" data-user-tab-target="user-resorts">Resorts</button>
+          <button class="btn btn-secondary" type="button" data-attraction-category="resorts" aria-pressed="false">Resorts</button>
         </div>
         <div class="attraction-shell">
           <div class="attraction-menu-card">
-            <h3>Available attractions</h3>
-            <div id="attraction-selector" class="attraction-menu-list"></div>
+            <h3>Available places</h3>
+            <div id="attraction-selector" class="attraction-menu-list" aria-live="polite"></div>
           </div>
-          <div class="card attraction-detail-card">
+          <div id="attraction-detail-card" class="card attraction-detail-card">
             <div class="detail-top">
               <div>
                 <p class="eyebrow">Selected destination</p>

@@ -1,14 +1,20 @@
 // Tourist attraction discovery: list, detail panel, and Book form sync
 (function () {
   let activeCategory = 'all';
+  let latestState = null;
 
   function filterAttractionsByCategory(attractions, category) {
     if (category === 'all') return attractions;
-    return attractions.filter((attraction) => String(attraction.category || '').trim().toLowerCase() === category);
+    return attractions.filter((attraction) => {
+      const words = String(attraction.category || '').toLowerCase().split(/[^a-z]+/);
+      return words.includes(category) || (category === 'falls' && (words.includes('waterfall') || words.includes('waterfalls')));
+    });
   }
 
   function renderAttractionsFeature(state) {
+    latestState = state;
     const attractionsList = document.getElementById('attraction-selector');
+    const detailCard = document.getElementById('attraction-detail-card');
     const selectedName = document.getElementById('selected-attraction-name');
     const selectedDescription = document.getElementById('selected-attraction-description');
     const selectedExpectations = document.getElementById('selected-attraction-expectations');
@@ -21,7 +27,9 @@
     if (attractionsList) {
       const renderList = () => {
         attractionsList.innerHTML = '';
-        const visibleAttractions = filterAttractionsByCategory(state.attractions, activeCategory);
+        if (detailCard) detailCard.hidden = activeCategory === 'resorts';
+        const visibleAttractions = activeCategory === 'resorts' ? [] : filterAttractionsByCategory(latestState.attractions, activeCategory);
+        const visibleResorts = ['all', 'resorts'].includes(activeCategory) ? (latestState.resorts || []) : [];
         visibleAttractions.forEach((attraction) => {
           const button = document.createElement('button');
           button.type = 'button';
@@ -33,8 +41,19 @@
           button.addEventListener('click', () => selectAttraction(attraction));
           attractionsList.appendChild(button);
         });
-        if (!visibleAttractions.length) {
-          attractionsList.innerHTML = '<p class="empty-state">No attractions in this category yet.</p>';
+        visibleResorts.forEach((resort) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'attraction-option';
+          button.innerHTML = `<span>${escapeHtml(resort.name)}</span><strong>Resort</strong>`;
+          button.addEventListener('click', () => {
+            showUserTab('user-resorts');
+            window.UserResortsFeature.select(resort);
+          });
+          attractionsList.appendChild(button);
+        });
+        if (!visibleAttractions.length && !visibleResorts.length) {
+          attractionsList.innerHTML = '<p class="empty-state">No places in this category yet.</p>';
         }
       };
       renderList();
