@@ -32,9 +32,9 @@ function setupGuideLoginForm() {
         .eq('auth_user_id', session.user.id)
         .maybeSingle();
       if (error) throw error;
-      if (!guide || guide.status === 'Pending') {
+      if (guide?.status !== 'Approved') {
         await supabaseClient.auth.signOut();
-        showMessage('Your application is still pending Admin approval.');
+        showMessage('Your guide application has not been approved by Admin.');
         return;
       }
       window.location.href = 'guide.html';

@@ -27,7 +27,7 @@ function getAttractionCoords(attraction) {
 let signedInGuideUserId = '';
 
 function renderGuidePage(state) {
-  const approvedGuides = state.guides.filter((guide) => guide.status !== 'Pending' && guide.auth_user_id === signedInGuideUserId);
+  const approvedGuides = state.guides.filter((guide) => guide.status === 'Approved' && guide.auth_user_id === signedInGuideUserId);
   const currentGuide = approvedGuides[0]?.id || '';
   const overview = document.getElementById('guide-overview-summary');
   if (overview) {
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupGuideMenu();
   setupGuideLogout();
   appState = await loadState();
-  if (!appState.guides.some((guide) => guide.auth_user_id === signedInGuideUserId && guide.status !== 'Pending')) {
+  if (!appState.guides.some((guide) => guide.auth_user_id === signedInGuideUserId && guide.status === 'Approved')) {
     await supabaseClient.auth.signOut();
     window.location.replace('guide-login.html');
     return;

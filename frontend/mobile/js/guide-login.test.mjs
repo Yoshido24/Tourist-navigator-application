@@ -10,7 +10,7 @@ test('guide login uses a six-digit email code instead of a password', () => {
   assert.doesNotMatch(html, /id="guide-auth-password"/);
 });
 
-test('guide role is checked after OTP and pending guides are signed out', async () => {
+test('guide role is checked after OTP and rejected guides are signed out', async () => {
   let setupOptions;
   let start;
   let signedOut = false;
@@ -44,7 +44,7 @@ test('guide role is checked after OTP and pending guides are signed out', async 
       from: () => ({
         select: () => ({
           eq: () => ({
-            maybeSingle: async () => ({ data: { id: 'guide-1', status: 'Pending' }, error: null })
+            maybeSingle: async () => ({ data: { id: 'guide-1', status: 'Rejected' }, error: null })
           })
         })
       })
@@ -54,5 +54,27 @@ test('guide role is checked after OTP and pending guides are signed out', async 
   start();
   await setupOptions.onVerified({ user: { id: 'guide-auth-user' } });
   assert.equal(signedOut, true);
-  assert.match(message.textContent, /pending Admin approval/i);
+  assert.match(message.textContent, /not been approved/i);
+});
+
+test('a rejected guide session is signed out when the dashboard starts', async () => {
+  let start;
+  let signedOut = false;
+  let redirected = '';
+  const context = vm.createContext({
+    window: { location: { replace: (value) => { redirected = value; } } },
+    document: {
+      getElementById: () => null,
+      querySelectorAll: () => [],
+      addEventListener: (event, handler) => { if (event === 'DOMContentLoaded') start = handler; }
+    },
+    getAuthSession: async () => ({ user: { id: 'rejected-guide' } }),
+    getSessionRole: () => 'authenticated',
+    loadState: async () => ({ guides: [{ id: 'g1', auth_user_id: 'rejected-guide', status: 'Rejected' }], bookings: [] }),
+    supabaseClient: { auth: { signOut: async () => { signedOut = true; } } }
+  });
+  vm.runInContext(readFileSync(new URL('./portal.js', import.meta.url), 'utf8'), context);
+  await start();
+  assert.equal(signedOut, true);
+  assert.equal(redirected, 'guide-login.html');
 });
