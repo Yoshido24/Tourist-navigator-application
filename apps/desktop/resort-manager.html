@@ -151,6 +151,13 @@
             <h2>Incoming booking requests</h2>
             <p>Confirm availability yourself; payment and live room availability are not handled here.</p>
           </div>
+          <div id="resort-booking-export" class="booking-export-controls" aria-label="Export booking history">
+            <label for="resort-booking-export-month">Booking month</label>
+            <input id="resort-booking-export-month" type="month" data-export-month />
+            <button class="btn btn-primary" type="button" data-export-csv>Download Excel</button>
+            <button class="btn btn-secondary" type="button" data-export-print>Print PDF</button>
+            <p class="success-message" data-export-message role="status" hidden></p>
+          </div>
           <div id="owner-bookings" class="dashboard-grid"></div>
         </section>
       </section>
@@ -158,6 +165,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/shared/js/booking-export.js"></script>
     <script src="../../frontend/desktop/js/resort-manager.js"></script>
   </body>
 </html>

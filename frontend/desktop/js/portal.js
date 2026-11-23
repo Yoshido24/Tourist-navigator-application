@@ -329,6 +329,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (year) year.textContent = new Date().getFullYear();
   setupAdminControls();
   setupAdminLogout();
+  window.BookingHistoryExport?.setup({ containerId: 'municipal-booking-export' });
   window.AdminAnnouncementsFeature?.setup();
   window.AdminShowcaseFeature?.setup();
   appState = await loadState();

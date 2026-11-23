@@ -131,6 +131,13 @@
           <div id="management-pending-list" class="dashboard-grid"></div>
         </div>
         <div id="management-completed-panel" class="management-view-panel" hidden>
+          <div id="municipal-booking-export" class="booking-export-controls" aria-label="Export booking history">
+            <label for="municipal-booking-export-month">Booking month</label>
+            <input id="municipal-booking-export-month" type="month" data-export-month />
+            <button class="btn btn-primary" type="button" data-export-csv>Download Excel</button>
+            <button class="btn btn-secondary" type="button" data-export-print>Print PDF</button>
+            <p class="success-message" data-export-message role="status" hidden></p>
+          </div>
           <div id="management-completed-list" class="dashboard-grid"></div>
         </div>
       </section>
@@ -447,6 +454,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/shared/js/booking-export.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script>window.APP_ROUTES = { guide: '../mobile/guide.html' };</script>
     <script src="../../frontend/desktop/features/attractions/attractions.js"></script>

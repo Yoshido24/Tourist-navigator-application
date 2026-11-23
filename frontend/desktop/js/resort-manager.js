@@ -263,6 +263,7 @@
       return;
     }
     owner = user;
+    window.BookingHistoryExport?.setup({ containerId: 'resort-booking-export' });
     setMessage('owner-account-status', 'Your owner account is approved. New and changed listings are reviewed by the Barangay Admin.');
     const [barangays, submissionsResult, bookingsResult] = await Promise.all([
       loadBarangays(),

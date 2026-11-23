@@ -5,6 +5,8 @@ import test from 'node:test';
 
 test('resort owner can switch between listing and bookings', () => {
   const html = readFileSync(new URL('../../../apps/desktop/resort-manager.html', import.meta.url), 'utf8');
+  assert.match(html, /id="resort-booking-export"[\s\S]*?data-export-month[\s\S]*?data-export-csv[\s\S]*?data-export-print/);
+  assert.match(html, /frontend\/shared\/js\/booking-export\.js/);
   const tabs = [...html.matchAll(/<button\b[^>]*data-resort-tab="([^"]+)"[^>]*>/g)].map((match) => ({
     dataset: { resortTab: match[1] },
     attributes: {},

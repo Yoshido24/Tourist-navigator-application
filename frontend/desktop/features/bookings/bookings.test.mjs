@@ -22,3 +22,12 @@ test('municipal booking overview displays bookings without approval or assignmen
   assert.match(html, /Falls/);
   assert.doesNotMatch(html, /data-management-approve|data-management-assign|data-management-guide/);
 });
+
+test('municipal booking history exposes monthly export controls', () => {
+  const html = readFileSync(new URL('../../../../apps/desktop/admin.html', import.meta.url), 'utf8');
+  assert.match(html, /id="municipal-booking-export"/);
+  assert.match(html, /data-export-month/);
+  assert.match(html, /data-export-csv/);
+  assert.match(html, /data-export-print/);
+  assert.match(html, /frontend\/shared\/js\/booking-export\.js/);
+});

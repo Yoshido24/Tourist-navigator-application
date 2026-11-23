@@ -33,6 +33,7 @@
     dashboard.hidden = false;
     window.setDashboardNavigation?.(true);
     signOutButton.hidden = false;
+    window.BookingHistoryExport?.setup({ containerId: 'barangay-booking-export' });
     accessMessage.hidden = true;
     const assignmentsResult = await supabaseClient
       .from('barangay_admin_assignments')

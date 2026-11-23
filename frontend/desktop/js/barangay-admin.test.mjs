@@ -78,6 +78,8 @@ test('Barangay admin shows its logos, header links and sidebar with sign out', (
   }
   assert.match(html, /<aside id="barangay-sidebar"[\s\S]*?<\/nav>\s*<button id="barangay-signout"[^>]*>Sign out<\/button>\s*<\/aside>/);
   assert.match(html, /id="local-shop-image"[^>]*type="file"/);
+  assert.match(html, /id="barangay-booking-export"[\s\S]*?data-export-month[\s\S]*?data-export-csv[\s\S]*?data-export-print/);
+  assert.match(html, /frontend\/shared\/js\/booking-export\.js/);
 });
 
 test('a different signed-in role sees the login screen without sign out or a sidebar', async () => {

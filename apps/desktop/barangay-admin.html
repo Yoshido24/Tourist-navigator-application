@@ -148,6 +148,13 @@
               <h2>Bookings</h2>
               <p>Review and update requests from attractions assigned to your barangay. Resort requests stay with the owner.</p>
             </div>
+            <div id="barangay-booking-export" class="booking-export-controls" aria-label="Export booking history">
+              <label for="barangay-booking-export-month">Booking month</label>
+              <input id="barangay-booking-export-month" type="month" data-export-month />
+              <button class="btn btn-primary" type="button" data-export-csv>Download Excel</button>
+              <button class="btn btn-secondary" type="button" data-export-print>Print PDF</button>
+              <p class="success-message" data-export-message role="status" hidden></p>
+            </div>
             <div id="barangay-bookings" class="dashboard-grid"></div>
           </section>
           <section id="barangay-resorts" class="barangay-tab-panel" data-barangay-tab-panel="resorts" role="tabpanel" hidden>
@@ -174,6 +181,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../frontend/shared/config/supabase.public.js"></script>
     <script src="../../frontend/shared/js/state.js"></script>
+    <script src="../../frontend/shared/js/booking-export.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="../../frontend/desktop/features/transport/transport.js"></script>
     <script src="../../frontend/shared/js/navigation.js"></script>
