@@ -139,36 +139,49 @@ for its backend and externally hosted libraries.
    Test the four portal roles: Municipal Super Admin, Barangay Admin, Resort
    Owner, and Tourist.
 
-### Gmail codes for staff login
+### Brevo codes for staff login
 
 Barangay Admin, Guide, and Resort Owner login uses a fresh six-digit Supabase
 email OTP. Passwords remain part of account creation and recovery, but the
 three staff login forms do not create a password-authenticated session.
 
-For local or self-hosted Supabase, enable Google 2-Step Verification on the
-sender account and create a Gmail app password. Set the sender address and app
-password in the environment that starts Supabase; do not put either in the
-repository:
+For local or self-hosted Supabase, create a Brevo account, add and verify the
+sending domain, create a sender email, and generate an SMTP key in
+**SMTP & API > SMTP**. Do not use a Brevo API key as the SMTP password. Set
+the Brevo login, SMTP key, and verified sender in the environment that starts
+Supabase:
 
 ```powershell
-$env:SUPABASE_AUTH_SMTP_USER = "tourism-office@gmail.com"
-$env:SUPABASE_AUTH_SMTP_PASS = "<gmail-app-password>"
+$env:SUPABASE_AUTH_SMTP_USER = "<brevo-account-login-email>"
+$env:SUPABASE_AUTH_SMTP_PASS = "<brevo-smtp-key>"
+$env:SUPABASE_AUTH_SMTP_SENDER_EMAIL = "no-reply@your-verified-domain.example"
 supabase stop
 supabase start
 ```
 
-For a hosted Supabase project, open **Authentication > SMTP Settings** and set
-host `smtp.gmail.com`, port `587`, the same Gmail address as sender/username,
-and the Gmail app password. In **Authentication > Email Templates**, copy the
-subject and `supabase/templates/magic-link.html` body into the Magic Link
-template, preserving `{{ .Token }}`. `config.toml` configures local/self-hosted
-Supabase only; it does not update hosted dashboard settings.
+For the hosted Supabase project, open **Authentication > SMTP Settings** and
+set:
+
+- Host: `smtp-relay.brevo.com`
+- Port: `587`
+- Username: Brevo account login email
+- Password: Brevo SMTP key
+- Sender email: the verified Brevo sender on your domain
+- Sender name: `Montalban Navigator`
+- Minimum interval per user: at least `30` seconds
+
+Then open **Authentication > Email Templates > Magic Link** and paste the
+subject and body from `supabase/templates/magic-link.html`, preserving
+`{{ .Token }}` and removing `{{ .ConfirmationURL }}`. This is the step that
+changes the received message from a login link into a six-digit code.
+`config.toml` configures local/self-hosted Supabase only; it does not update
+hosted dashboard settings automatically.
 
 The repository raises the configurable hourly allowance to 500 while retaining
-a 30-second resend guard. Email is not literally unlimited: Gmail may enforce a
-daily sending ceiling and Supabase or Google may still reject abusive or
-blocked traffic. Never expose the app password in frontend code, Netlify
-environment variables, SQL, or committed files.
+a 30-second resend guard. Supabase raises the hosted default only after custom
+SMTP is enabled. Brevo has its own account and daily sending quota; no external
+provider offers unlimited transactional email. Never expose the SMTP key in
+frontend code, Netlify environment variables, SQL, or committed files.
 
 Resort owners self-register, but cannot access owner tools until approved by a
 Municipal Super Admin. Barangay Admins review resort listings and edits for

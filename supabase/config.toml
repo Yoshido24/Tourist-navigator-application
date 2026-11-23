@@ -243,11 +243,11 @@ otp_expiry = 600
 # Use a production-ready SMTP server
 [auth.email.smtp]
 enabled = true
-host = "smtp.gmail.com"
+host = "smtp-relay.brevo.com"
 port = 587
 user = "env(SUPABASE_AUTH_SMTP_USER)"
 pass = "env(SUPABASE_AUTH_SMTP_PASS)"
-admin_email = "env(SUPABASE_AUTH_SMTP_USER)"
+admin_email = "env(SUPABASE_AUTH_SMTP_SENDER_EMAIL)"
 sender_name = "Montalban Navigator"
 
 # Uncomment to customize email template

@@ -90,12 +90,14 @@ test('staff logins publish OTP controls without publishing SMTP secrets', () => 
   }
 });
 
-test('Supabase uses Gmail SMTP secrets and a six-digit OTP template', () => {
+test('Supabase uses Brevo SMTP secrets and a six-digit OTP template', () => {
   const config = readFileSync(new URL('../supabase/config.toml', import.meta.url), 'utf8');
   const template = readFileSync(new URL('../supabase/templates/magic-link.html', import.meta.url), 'utf8');
   assert.match(config, /\[auth\.email\.smtp\]/);
-  assert.match(config, /host = "smtp\.gmail\.com"/);
+  assert.match(config, /host = "smtp-relay\.brevo\.com"/);
+  assert.match(config, /user = "env\(SUPABASE_AUTH_SMTP_USER\)"/);
   assert.match(config, /pass = "env\(SUPABASE_AUTH_SMTP_PASS\)"/);
+  assert.match(config, /admin_email = "env\(SUPABASE_AUTH_SMTP_SENDER_EMAIL\)"/);
   assert.match(config, /email_sent = 500/);
   assert.match(config, /max_frequency = "30s"/);
   assert.match(config, /otp_expiry = 600/);
