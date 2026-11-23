@@ -36,7 +36,7 @@
     const form = document.getElementById('add-attraction-form');
     const nameInput = document.getElementById('attraction-name');
     const categoryInput = document.getElementById('attraction-category');
-    const categories = window.ATTRACTION_CATEGORIES || [];
+    const categories = window.ATTRACTION_CATEGORIES || ['Adventure', 'Hiking', 'Camping', 'Historical'];
     const feeInput = document.getElementById('attraction-fee');
     const durationInput = document.getElementById('attraction-duration');
     const descriptionInput = document.getElementById('attraction-description');

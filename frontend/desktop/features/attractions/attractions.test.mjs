@@ -60,3 +60,40 @@ test('cancelled or rejected deletion keeps the attraction visible', async () => 
     else assert.equal(harness.alerts.length, 1);
   }
 });
+
+test('admin attraction form offers the categories used by tourists', () => {
+  const elements = new Map();
+  const element = (id) => {
+    if (!elements.has(id)) elements.set(id, {
+      id, value: '', dataset: {}, addEventListener() {}, appendChild() {},
+      set innerHTML(value) { this.html = value; },
+      get innerHTML() { return this.html || ''; }
+    });
+    return elements.get(id);
+  };
+  const map = { setView() { return this; }, on() {}, removeLayer() {} };
+  const context = vm.createContext({
+    window: {
+      L: {
+        map: () => map,
+        tileLayer: () => ({ addTo() {} })
+      },
+      AdminTransportFeature: { loadOptions() {} },
+      setTimeout() {}
+    },
+    document: {
+      getElementById: element,
+      createElement: (tag) => ({ tag, appendChild() {} }),
+      querySelector: () => null
+    },
+    escapeHtml: String,
+    renderAttractionPhotoList() {},
+    getAttractionCoords: () => [14.73, 121.15]
+  });
+  vm.runInContext(readFileSync(new URL('./attractions.js', import.meta.url), 'utf8'), context);
+  context.window.AdminAttractionsFeature.renderMap({ attractions: [] });
+  assert.match(element('attraction-category').innerHTML, /Adventure/);
+  assert.match(element('attraction-category').innerHTML, /Hiking/);
+  assert.match(element('attraction-category').innerHTML, /Camping/);
+  assert.match(element('attraction-category').innerHTML, /Historical/);
+});
